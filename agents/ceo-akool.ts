@@ -242,13 +242,13 @@ async function sendDailyReport(log: CeoLog, todayDecisions: CeoDecision[]) {
     <div dir="rtl" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8f7f4;padding:24px;border-radius:16px;">
       <div style="text-align:center;margin-bottom:20px;">
         <div style="width:48px;height:48px;background:linear-gradient(135deg,#1A6B4A,#145238);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;font-weight:900;">عَ</div>
-        <h1 style="font-size:1.3rem;margin:8px 0 4px;">📊 التقرير اليومي — عَقول</h1>
-        <p style="color:#6B6860;font-size:0.85rem;">${new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <h1 style="font-size:22px;margin:8px 0 4px;">📊 التقرير اليومي — عَقول</h1>
+        <p style="color:#6B6860;font-size:14px;">${new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
 
       <div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;">
-        <h2 style="font-size:1rem;margin-bottom:12px;">📈 إحصائيات المنصة</h2>
-        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <h2 style="font-size:18px;margin-bottom:12px;">📈 إحصائيات المنصة</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:15px;">
           <tr><td style="padding:6px 0;border-bottom:1px solid #eee;">إجمالي المقالات</td><td style="font-weight:700;color:#1A6B4A;">${totalArticles}</td></tr>
           <tr><td style="padding:6px 0;border-bottom:1px solid #eee;">أدلة الموسوعة</td><td style="font-weight:700;color:#1A6B4A;">${totalFoundations}</td></tr>
           <tr><td style="padding:6px 0;border-bottom:1px solid #eee;">فيديوهات يوتيوب</td><td style="font-weight:700;color:#1A6B4A;">${ytCount}</td></tr>
@@ -258,8 +258,8 @@ async function sendDailyReport(log: CeoLog, todayDecisions: CeoDecision[]) {
       </div>
 
       <div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;">
-        <h2 style="font-size:1rem;margin-bottom:12px;">🤖 أداء الوكلاء</h2>
-        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <h2 style="font-size:18px;margin-bottom:12px;">🤖 أداء الوكلاء</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:15px;">
           <tr><td style="padding:6px 0;border-bottom:1px solid #eee;">👨‍💼 عَقول (CEO)</td><td>${log.totalDecisions} قرار</td></tr>
           <tr><td style="padding:6px 0;border-bottom:1px solid #eee;">👩‍💻 نوره (محتوى)</td><td>${nouraArticles} مقال</td></tr>
           <tr><td style="padding:6px 0;border-bottom:1px solid #eee;">👨‍💼 باسل (أخبار)</td><td>${baselArticles} مقال</td></tr>
@@ -270,18 +270,18 @@ async function sendDailyReport(log: CeoLog, todayDecisions: CeoDecision[]) {
       </div>
 
       <div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;">
-        <h2 style="font-size:1rem;margin-bottom:12px;">📋 قرارات اليوم</h2>
-        <ul style="padding:0 16px;font-size:0.9rem;line-height:1.8;">${decisionsHtml}</ul>
+        <h2 style="font-size:18px;margin-bottom:12px;">📋 قرارات اليوم</h2>
+        <ul style="padding:0 16px;font-size:15px;line-height:1.8;">${decisionsHtml}</ul>
       </div>
 
       ${log.weeklyReport ? `
       <div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;">
-        <h2 style="font-size:1rem;margin-bottom:12px;">📝 التقرير الأسبوعي</h2>
-        <p style="font-size:0.9rem;line-height:1.7;color:#3D3B35;">${log.weeklyReport}</p>
+        <h2 style="font-size:18px;margin-bottom:12px;">📝 التقرير الأسبوعي</h2>
+        <p style="font-size:15px;line-height:1.7;color:#3D3B35;">${log.weeklyReport}</p>
       </div>
       ` : ''}
 
-      <p style="text-align:center;color:#9B9890;font-size:0.78rem;margin-top:20px;">
+      <p style="text-align:center;color:#9B9890;font-size:13px;margin-top:20px;">
         هذا التقرير مُولّد تلقائياً بواسطة عَقول CEO Agent 🤖
       </p>
     </div>
