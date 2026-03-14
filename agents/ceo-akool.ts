@@ -109,23 +109,47 @@ async function evaluateTeam(log: CeoLog): Promise<CeoDecision[]> {
     return `- ${a.name} (${a.nameEn}): ${a.role} | حالة: ${a.active ? 'نشط' : 'موقف'} | الإنتاج: ${output}`;
   }).join('\n');
 
-  const systemPrompt = `أنت "عَقول"، المدير التنفيذي (CEO) لمنصة عَقول.
-مهمتك تقييم أداء فريق الوكلاء واتخاذ قرارات.
+  // Read recent articles for quality review
+  const recentArticles: string[] = [];
+  const articlesDir = 'src/content/articles';
+  if (existsSync(articlesDir)) {
+    const files = readdirSync(articlesDir).filter(f => f.endsWith('.md')).slice(-5);
+    for (const file of files) {
+      const content = readFileSync(`${articlesDir}/${file}`, 'utf-8');
+      const title = content.match(/title:\s*"([^"]+)"/)?.[1] || file;
+      const wordCount = content.split(/\s+/).length;
+      const hasNonArabic = /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]/.test(content);
+      const author = content.match(/author:\s*"([^"]+)"/)?.[1] || 'غير معروف';
+      recentArticles.push(`- "${title}" | ${author} | ${wordCount} كلمة | ${hasNonArabic ? '⚠️ يحتوي أحرف غير عربية!' : '✅ عربي نظيف'}`);
+    }
+  }
 
-القرارات المتاحة لك:
-- praise: إشادة بوكيل ممتاز
-- warning: تحذير وكيل ضعيف
-- reassign: نقل مهمة بين وكلاء
-- promote: ترقية وكيل
-- demote: تقليص مهام وكيل
-- hire: اقتراح توظيف وكيل جديد
-- fire: إيقاف وكيل (فقط في حالات الفشل المتكرر)
+  const systemPrompt = `أنت "عَقول"، المدير التنفيذي (CEO) لمنصة عَقول — منصة عربية تعليمية عن الذكاء الاصطناعي.
 
-أجب بصيغة JSON فقط — مصفوفة من القرارات:
-[{"agent": "اسم الوكيل", "action": "نوع القرار", "reason": "السبب بالعربي"}]
+أنت مدير صارم ومسؤول. مهمتك:
+1. تقييم أداء كل وكيل
+2. مراجعة جودة المحتوى المنشور (هل هو عربي نظيف؟ هل هو مفيد؟ هل هو طويل بما يكفي؟)
+3. اتخاذ قرارات حاسمة
 
-كن عادلاً ومنطقياً. لا تتخذ قرارات fire إلا إذا كان الوكيل فاشلاً تماماً.
-إذا كان الأداء جيداً، استخدم praise.`;
+قواعد الجودة الصارمة:
+- أي مقال أقل من 500 كلمة = ⚠️ warning للكاتب
+- أي مقال يحتوي أحرف غير عربية (صينية، يابانية) = ❌ حذف فوري + warning
+- أي فيديو يوتيوب غير متعلق مباشرة بتعليم AI = ❌ حذف فوري + warning لريم
+- أي محتوى سطحي بدون قيمة تعليمية = warning
+
+القرارات المتاحة:
+- praise: إشادة بعمل ممتاز
+- warning: تحذير وكيل بسبب محتوى ضعيف
+- delete: حذف مقال رديء (اذكر اسم الملف)
+- reassign: نقل مهمة
+- promote: ترقية
+- demote: تقليص مهام
+- fire: إيقاف وكيل فاشل
+
+أجب بصيغة JSON فقط:
+[{"agent": "اسم الوكيل", "action": "نوع القرار", "reason": "السبب بالعربي", "file": "اسم الملف إن كان حذف"}]
+
+كن صارماً. الجودة أهم من الكمية. لا تتساهل مع المحتوى الضعيف.`;
 
   const userPrompt = `تقرير الفريق:
 
@@ -135,10 +159,13 @@ async function evaluateTeam(log: CeoLog): Promise<CeoDecision[]> {
 حالة الوكلاء:
 ${teamStatus}
 
+آخر المقالات المنشورة (راجع جودتها):
+${recentArticles.join('\n')}
+
 عدد القرارات السابقة: ${log.totalDecisions}
 آخر تشغيل: ${log.lastRun || 'أول مرة'}
 
-قيّم الفريق واتخذ قراراتك:`;
+راجع جودة المقالات واتخذ قراراتك. كن صارماً مع المحتوى الضعيف:`;
 
   const result = await callLLM(systemPrompt, userPrompt);
 
@@ -321,6 +348,16 @@ async function main() {
       decision.action === 'demote' ? '⬇️' : '📌';
 
     console.log(`   ${emoji} ${decision.agent}: ${decision.action} — ${decision.reason}`);
+
+    // Execute delete decisions
+    if (decision.action === 'delete' && decision.file) {
+      const filePath = decision.file.startsWith('src/') ? decision.file : `src/content/articles/${decision.file}`;
+      if (existsSync(filePath)) {
+        const { unlinkSync } = await import('fs');
+        unlinkSync(filePath);
+        console.log(`   🗑️ تم حذف: ${filePath}`);
+      }
+    }
 
     log.decisions.push({
       date: new Date().toISOString(),
