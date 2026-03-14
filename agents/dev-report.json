@@ -1,0 +1,58 @@
+{
+  "date": "2026-03-14T22:22:31.386Z",
+  "totalFiles": 63,
+  "totalArticles": 13,
+  "totalPages": 23,
+  "issues": [
+    {
+      "type": "content",
+      "severity": "high",
+      "file": "src/content/articles/youtube-إزاي-تنشر-على-السوشيال-ميديا-تلقائياً-بالذكاء-الاص.md",
+      "description": "مقال قصير جداً (94 كلمة)",
+      "suggestion": "المقال يجب أن يكون 500 كلمة على الأقل"
+    },
+    {
+      "type": "content",
+      "severity": "high",
+      "file": "src/content/articles/youtube-منيو-عربي-لمطعم-وجبات-سريعة-خلال-دقائق-وبدون-مصمم؟.md",
+      "description": "مقال قصير جداً (102 كلمة)",
+      "suggestion": "المقال يجب أن يكون 500 كلمة على الأقل"
+    },
+    {
+      "type": "accessibility",
+      "severity": "low",
+      "file": "src/pages/404.astro",
+      "description": "صفحة بدون بحث",
+      "suggestion": "أضف SearchModal للوصول السريع"
+    },
+    {
+      "type": "accessibility",
+      "severity": "low",
+      "file": "src/pages/bookmarks.astro",
+      "description": "صفحة بدون بحث",
+      "suggestion": "أضف SearchModal للوصول السريع"
+    },
+    {
+      "type": "seo",
+      "severity": "medium",
+      "file": "src/pages/index.astro",
+      "description": "صفحة بدون عنوان مخصص",
+      "suggestion": "أضف title prop لـ BaseLayout"
+    },
+    {
+      "type": "bug",
+      "severity": "medium",
+      "file": "agents/config.ts",
+      "description": "وكيل بدون معالجة أخطاء",
+      "suggestion": "أضف try/catch للعمليات الخارجية"
+    }
+  ],
+  "score": 78,
+  "aiSuggestions": [
+    "تطوير مقال (src/content/articles/youtube-إزاي-تنشر-على-السوشيال-ميديا-تلقائياً-بالذكاء-الاص.md) لزيادة عدد الكلمات",
+    "تطوير مقال (src/content/articles/youtube-منيو-عربي-لمطعم-وجبات-سريعة-خلال-دقائق-وبدون-مصمم؟.md) لزيادة عدد الكلمات",
+    "إضافة خاصية البحث إلى صفحة (src/pages/404.astro) وإلى صفحة (src/pages/bookmarks.astro)",
+    "إضافة عنوان مخصص إلى صفحة (src/pages/index.astro)",
+    "تطوير وكيل (agents/config.ts) لمعالجة الأخطاء بشكل فعال"
+  ]
+}
