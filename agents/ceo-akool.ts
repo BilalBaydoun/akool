@@ -265,7 +265,7 @@ async function sendDailyReport(log: CeoLog, todayDecisions: CeoDecision[]) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'عَقول CEO <noreply@akool.vercel.app>',
+        from: 'عَقول CEO <onboarding@resend.dev>',
         to: OWNER_EMAIL,
         subject: `📊 تقرير عَقول اليومي — ${totalArticles} مقال، ${todayDecisions.length} قرار`,
         html,

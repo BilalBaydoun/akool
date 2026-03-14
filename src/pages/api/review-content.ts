@@ -119,7 +119,7 @@ async function sendEmail(to: string, subject: string, body: string) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'عَقول <noreply@akool.vercel.app>',
+        from: 'عَقول <onboarding@resend.dev>',
         to, subject,
         html: body,
       }),
