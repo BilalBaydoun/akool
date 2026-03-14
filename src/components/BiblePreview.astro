@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+
+const foundations = (await getCollection('foundations')).sort((a, b) => a.data.order - b.data.order);
+
+const guides = [
+  { icon: '💬', title: 'دليل ChatGPT الكامل', desc: 'كل ما تحتاج معرفته عن استخدام ChatGPT باحتراف', color: 'var(--blue-light)', textColor: 'var(--blue)' },
+  { icon: '🎨', title: 'دليل Midjourney الكامل', desc: 'تعلّم توليد الصور بالذكاء الاصطناعي من الصفر', color: 'var(--purple-light)', textColor: 'var(--purple)' },
+  { icon: '✍️', title: 'دليل البرومبت الاحترافي', desc: 'فن كتابة البرومبتات للحصول على أفضل النتائج', color: 'var(--orange-light)', textColor: 'var(--orange)' },
+  { icon: '🤖', title: 'دليل Claude الكامل', desc: 'استخدام Claude في الكتابة والبرمجة والتحليل', color: 'var(--accent-light)', textColor: 'var(--accent)' },
+];
+---
+
+<section class="section section-alt" id="bible">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">📖 موسوعة عَقول</div>
+      <h2 class="section-title">الموسوعة العربية للذكاء الاصطناعي</h2>
+      <p class="section-sub">المرجع الشامل لكل ما تحتاج معرفته عن AI — من الأساسيات إلى الاحتراف</p>
+    </div>
+
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;">📚 الأساسيات</h3>
+    <div class="library-grid" style="margin-bottom:3rem;">
+      {foundations.map((item) => (
+        <a href={`/bible/${item.id}`} class="lib-card">
+          <div class="lib-icon" style="background:var(--accent-light);color:var(--accent);">
+            {item.data.icon}
+          </div>
+          <h3>{item.data.title}</h3>
+          <p>{item.data.description}</p>
+          <span class="lib-link">اقرأ المزيد ←</span>
+        </a>
+      ))}
+    </div>
+
+    <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;">🗺️ الأدلة الشاملة <span style="font-size:0.75rem;color:var(--text-light);font-weight:500;">(قريباً)</span></h3>
+    <div class="library-grid">
+      {guides.map((guide) => (
+        <div class="lib-card" style="opacity:0.7;">
+          <div class="lib-icon" style={`background:${guide.color};color:${guide.textColor};`}>
+            {guide.icon}
+          </div>
+          <h3>{guide.title}</h3>
+          <p>{guide.desc}</p>
+          <span class="lib-link" style="color:var(--text-light);">قريباً</span>
+        </div>
+      ))}
+    </div>
+
+    <div class="load-more-wrap" style="margin-top:2rem;">
+      <a href="/bible" class="btn-load-more">عرض الموسوعة الكاملة ←</a>
+    </div>
+  </div>
+</section>

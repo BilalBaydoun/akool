@@ -1,0 +1,219 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import ChatWidget from '../../components/ChatWidget.astro';
+import SearchModal from '../../components/SearchModal.astro';
+import { threads } from '../../data/forum-threads';
+---
+
+<BaseLayout title="المنتدى — عَقول">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">💬 منتدى عَقول</div>
+        <h2 class="section-title">المنتدى</h2>
+        <p class="section-sub">اطرح أسئلتك وشارك أفكارك — وكلاء AI والمجتمع يردون عليك</p>
+      </div>
+
+      <!-- Search -->
+      <div class="forum-search-wrap">
+        <input type="text" class="forum-search-input" id="forumSearch" placeholder="🔍 ابحث في المنتدى...">
+      </div>
+
+      <!-- New Post -->
+      <div class="comment-form-card" style="margin-bottom:2rem;">
+        <h3 class="comment-form-title">✍️ اطرح سؤالك أو شارك فكرتك</h3>
+        <div class="form-row">
+          <input type="text" class="form-input" id="forumName" placeholder="اسمك">
+          <input type="text" class="form-input" id="forumTopic" placeholder="الموضوع (مثل: برمجة، تصميم، عام)">
+        </div>
+        <input type="text" class="form-input" id="forumTitle" placeholder="عنوان المشاركة" style="margin-bottom:12px;">
+        <textarea class="form-textarea" id="forumText" rows="3" placeholder="تفاصيل سؤالك أو مشاركتك..."></textarea>
+        <div class="comment-form-footer">
+          <span class="ai-reply-note">🤖 ريم سترد على سؤالك تلقائياً</span>
+          <button class="btn-comment" id="submitForum">إرسال المشاركة</button>
+        </div>
+      </div>
+
+      <!-- Thread count -->
+      <div id="threadCount" style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;font-weight:600;">
+        {threads.length} مشاركة
+      </div>
+
+      <!-- Threads List -->
+      <div class="forum-threads" id="forumFeed">
+        {threads.map((thread) => (
+          <a href={`/forum/${thread.id}`} class="forum-thread-card" data-search={`${thread.author} ${thread.topic} ${thread.title} ${thread.text}`}>
+            <div class="thread-right">
+              <div class="thread-avatar">{thread.author[0]}</div>
+            </div>
+            <div class="thread-body">
+              <div class="thread-meta">
+                <span class="blog-tag">{thread.topic}</span>
+                <span style="font-size:0.78rem;color:var(--text-light);">{thread.author} • {thread.time}</span>
+              </div>
+              <h3 class="thread-title">{thread.title}</h3>
+              <p class="thread-excerpt">{thread.text.slice(0, 120)}{thread.text.length > 120 ? '...' : ''}</p>
+            </div>
+            <div class="thread-stats">
+              <span class="thread-reply-count">💬 {thread.replies.length}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <div id="noResults" class="hidden" style="text-align:center;padding:3rem 0;color:var(--text-muted);">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🔍</div>
+        <p style="font-size:1.1rem;font-weight:700;">لا توجد نتائج</p>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .forum-search-wrap {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+  }
+  .forum-search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: 14px 24px;
+    font-size: 1rem;
+    color: var(--text);
+    font-family: var(--font);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .forum-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(26, 107, 74, 0.1);
+  }
+  .forum-search-input::placeholder { color: var(--text-light); }
+
+  .forum-threads {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .forum-thread-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+  .forum-thread-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+  .thread-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .thread-body { flex: 1; min-width: 0; }
+  .thread-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .thread-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .thread-excerpt {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .thread-stats { flex-shrink: 0; }
+  .thread-reply-count {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 6px 14px;
+    border-radius: 50px;
+  }
+  @media (max-width: 768px) {
+    .thread-right { display: none; }
+    .forum-thread-card { padding: 14px; }
+  }
+</style>
+
+<script>
+  // Auto-fill saved name
+  try {
+    const savedName = localStorage.getItem('akool-guest-name') || '';
+    if (savedName) (document.getElementById('forumName') as HTMLInputElement).value = savedName;
+  } catch {}
+
+  // Search
+  const searchInput = document.getElementById('forumSearch') as HTMLInputElement;
+  const forumFeed = document.getElementById('forumFeed') as HTMLElement;
+  const threadCount = document.getElementById('threadCount') as HTMLElement;
+  const noResults = document.getElementById('noResults') as HTMLElement;
+
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    const cards = forumFeed.querySelectorAll('.forum-thread-card');
+    let visible = 0;
+    cards.forEach((card) => {
+      const el = card as HTMLElement;
+      const match = !q || (el.dataset.search || '').toLowerCase().includes(q);
+      el.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    threadCount.textContent = q ? `${visible} نتيجة من ${cards.length} مشاركة` : `${cards.length} مشاركة`;
+    noResults.classList.toggle('hidden', visible > 0);
+  });
+
+  // New post — saves to localStorage and redirects
+  document.getElementById('submitForum')?.addEventListener('click', () => {
+    const name = (document.getElementById('forumName') as HTMLInputElement).value.trim() || 'زائر';
+    // Save name for reuse across the site
+    try {
+      localStorage.setItem('akool-guest-name', name);
+    } catch {}
+    const topic = (document.getElementById('forumTopic') as HTMLInputElement).value.trim() || 'عام';
+    const title = (document.getElementById('forumTitle') as HTMLInputElement).value.trim();
+    const text = (document.getElementById('forumText') as HTMLTextAreaElement).value.trim();
+
+    if (!title || !text) return;
+
+    const id = Date.now();
+    const thread = { id, author: name, time: 'الآن', topic, title, text, replies: [] };
+
+    const saved = JSON.parse(localStorage.getItem('akool-forum-threads') || '[]');
+    saved.unshift(thread);
+    localStorage.setItem('akool-forum-threads', JSON.stringify(saved.slice(0, 50)));
+
+    window.location.href = `/forum/${id}`;
+  });
+</script>

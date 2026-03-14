@@ -1,0 +1,399 @@
+<!-- Auth Modal: Login / Register / Profile -->
+<div id="authModal" class="search-modal hidden">
+  <div class="search-overlay" id="authOverlay"></div>
+  <div class="search-container" style="max-width:440px;">
+
+    <!-- Login View -->
+    <div id="authLogin" class="auth-view">
+      <div class="auth-header">
+        <h3>🔐 تسجيل الدخول</h3>
+        <button class="chat-close" id="authClose1">✕</button>
+      </div>
+      <div class="auth-body">
+        <input type="email" id="loginEmail" class="form-input" placeholder="البريد الإلكتروني" style="margin-bottom:12px;">
+        <input type="password" id="loginPassword" class="form-input" placeholder="كلمة المرور" style="margin-bottom:16px;">
+        <button id="loginBtn" class="btn-enhance" style="border-radius:50px;">تسجيل الدخول</button>
+        <p class="auth-switch">ليس لديك حساب؟ <button id="showRegister" class="auth-link">أنشئ حساباً</button></p>
+        <div id="loginError" class="auth-error hidden"></div>
+      </div>
+    </div>
+
+    <!-- Register View -->
+    <div id="authRegister" class="auth-view hidden">
+      <div class="auth-header">
+        <h3>✨ إنشاء حساب جديد</h3>
+        <button class="chat-close" id="authClose2">✕</button>
+      </div>
+      <div class="auth-body">
+        <input type="text" id="regUsername" class="form-input" placeholder="اسم المستخدم" style="margin-bottom:12px;">
+        <input type="email" id="regEmail" class="form-input" placeholder="البريد الإلكتروني" style="margin-bottom:12px;">
+        <input type="password" id="regPassword" class="form-input" placeholder="كلمة المرور (6 أحرف على الأقل)" style="margin-bottom:16px;">
+        <button id="registerBtn" class="btn-enhance" style="border-radius:50px;">إنشاء الحساب</button>
+        <p class="auth-switch">لديك حساب بالفعل؟ <button id="showLogin" class="auth-link">سجّل الدخول</button></p>
+        <div id="regError" class="auth-error hidden"></div>
+        <div id="regSuccess" class="auth-success hidden"></div>
+      </div>
+    </div>
+
+    <!-- Profile View (shown when logged in) -->
+    <div id="authProfile" class="auth-view hidden">
+      <div class="auth-header">
+        <h3>👤 ملفي الشخصي</h3>
+        <button class="chat-close" id="authClose3">✕</button>
+      </div>
+      <div class="auth-body">
+        <div class="profile-card">
+          <div class="profile-avatar" id="profileAvatar">👤</div>
+          <div class="profile-info">
+            <span class="profile-name" id="profileName">—</span>
+            <span class="profile-badge hidden" id="profileBadge"></span>
+          </div>
+          <span class="profile-email" id="profileEmail">—</span>
+        </div>
+
+        <div class="profile-section">
+          <h4>💰 التبرعات</h4>
+          <p class="profile-donation-info" id="donationInfo">لم تتبرع بعد</p>
+          <div class="profile-donation-toggle" id="donationToggle" style="display:none;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;">
+              <input type="checkbox" id="showDonationCheck">
+              إظهار مبلغ التبرع في ملفي الشخصي
+            </label>
+          </div>
+          <a href="#donate" class="btn-primary" style="margin-top:12px;display:inline-flex;padding:8px 20px;font-size:0.85rem;border-radius:50px;" onclick="closeAuthModal()">❤ تبرّع الآن</a>
+        </div>
+
+        <div class="profile-section">
+          <h4>📤 مشاركاتي</h4>
+          <a href="/submit" class="btn-outline" style="padding:8px 20px;font-size:0.85rem;border-radius:50px;" onclick="closeAuthModal()">شارك محتوى جديد</a>
+        </div>
+
+        <button id="logoutBtn" class="btn-outline" style="width:100%;margin-top:1rem;padding:10px;border-radius:50px;color:var(--rose);">تسجيل الخروج</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+  }
+  .auth-header h3 { font-size: 1.1rem; font-weight: 800; }
+  .auth-body { padding: 24px; }
+  .auth-view.hidden { display: none; }
+  .auth-switch {
+    text-align: center; margin-top: 16px;
+    font-size: 0.85rem; color: var(--text-muted);
+  }
+  .auth-link {
+    background: none; border: none; color: var(--accent);
+    font-weight: 700; cursor: pointer; font-family: var(--font);
+    font-size: 0.85rem;
+  }
+  .auth-link:hover { text-decoration: underline; }
+  .auth-error {
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--rose-light); color: var(--rose);
+    border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;
+  }
+  .auth-success {
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--accent-light); color: var(--accent);
+    border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600;
+  }
+  .profile-card {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; padding: 20px; margin-bottom: 20px;
+    background: var(--surface2); border-radius: var(--radius);
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--accent-light); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 700;
+  }
+  .profile-info { display: flex; align-items: center; gap: 8px; }
+  .profile-name { font-size: 1.1rem; font-weight: 800; }
+  .profile-badge {
+    font-size: 0.72rem; font-weight: 700; padding: 2px 10px;
+    border-radius: 50px;
+  }
+  .profile-badge.bronze { background: #FEF3C7; color: #92400E; }
+  .profile-badge.silver { background: #F1F5F9; color: #475569; }
+  .profile-badge.gold { background: #FEF9C3; color: #854D0E; }
+  .profile-badge.platinum { background: #EDE9FE; color: #6D28D9; }
+  .profile-email { font-size: 0.82rem; color: var(--text-muted); }
+  .profile-section {
+    padding: 16px 0; border-top: 1px solid var(--border);
+  }
+  .profile-section h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+  .profile-donation-info { font-size: 0.88rem; color: var(--text-muted); }
+
+  /* User button in navbar */
+  .user-avatar-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent-light); color: var(--accent);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .user-avatar-btn:hover { border-color: var(--accent); }
+  .user-avatar-btn.donor { border-color: #F59E0B; }
+</style>
+
+<script>
+  // Modal open/close — works without Supabase
+  const modal = document.getElementById('authModal') as HTMLElement;
+  const loginView = document.getElementById('authLogin') as HTMLElement;
+  const registerView = document.getElementById('authRegister') as HTMLElement;
+  const profileView = document.getElementById('authProfile') as HTMLElement;
+
+  function closeAuthModal() {
+    modal?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  (window as any).closeAuthModal = closeAuthModal;
+
+  function openAuthModal() {
+    modal?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    checkAuth();
+  }
+  (window as any).openAuthModal = openAuthModal;
+
+  function showView(view: 'login' | 'register' | 'profile') {
+    loginView?.classList.toggle('hidden', view !== 'login');
+    registerView?.classList.toggle('hidden', view !== 'register');
+    profileView?.classList.toggle('hidden', view !== 'profile');
+  }
+
+  // Close buttons — always work
+  ['authClose1', 'authClose2', 'authClose3'].forEach((id) => {
+    document.getElementById(id)?.addEventListener('click', closeAuthModal);
+  });
+  document.getElementById('authOverlay')?.addEventListener('click', closeAuthModal);
+
+  // Nav button — always works
+  document.getElementById('authNavBtn')?.addEventListener('click', openAuthModal);
+
+  // Switch views — always work
+  document.getElementById('showRegister')?.addEventListener('click', () => showView('register'));
+  document.getElementById('showLogin')?.addEventListener('click', () => showView('login'));
+
+  // Lazy-load Supabase only when needed
+  let sb: any = null;
+  async function getSupabase() {
+    if (sb) return sb;
+    try {
+      const mod = await import('../lib/supabase');
+      sb = mod.supabase;
+      // Check if actually configured
+      if (!sb.supabaseUrl || sb.supabaseUrl === '') {
+        sb = null;
+      }
+      return sb;
+    } catch {
+      return null;
+    }
+  }
+
+  function showNotConfigured(el: HTMLElement) {
+    el.textContent = '⚠️ نظام التسجيل قيد الإعداد — سيتم تفعيله قريباً';
+    el.classList.remove('hidden');
+  }
+
+  // Login
+  document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    const email = (document.getElementById('loginEmail') as HTMLInputElement).value.trim();
+    const password = (document.getElementById('loginPassword') as HTMLInputElement).value;
+    const errorEl = document.getElementById('loginError') as HTMLElement;
+
+    if (!email || !password) {
+      errorEl.textContent = 'يرجى ملء جميع الحقول';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    const supabase = await getSupabase();
+    if (!supabase) { showNotConfigured(errorEl); return; }
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        errorEl.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
+        errorEl.classList.remove('hidden');
+      } else {
+        errorEl.classList.add('hidden');
+        checkAuth();
+        updateNavAuth();
+      }
+    } catch {
+      showNotConfigured(errorEl);
+    }
+  });
+
+  // Register
+  document.getElementById('registerBtn')?.addEventListener('click', async () => {
+    const username = (document.getElementById('regUsername') as HTMLInputElement).value.trim();
+    const email = (document.getElementById('regEmail') as HTMLInputElement).value.trim();
+    const password = (document.getElementById('regPassword') as HTMLInputElement).value;
+    const errorEl = document.getElementById('regError') as HTMLElement;
+    const successEl = document.getElementById('regSuccess') as HTMLElement;
+
+    if (!username || !email || !password) {
+      errorEl.textContent = 'يرجى ملء جميع الحقول';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    if (password.length < 6) {
+      errorEl.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    const supabase = await getSupabase();
+    if (!supabase) { showNotConfigured(errorEl); return; }
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username } },
+      });
+
+      if (error) {
+        errorEl.textContent = 'خطأ: ' + error.message;
+        errorEl.classList.remove('hidden');
+        successEl.classList.add('hidden');
+      } else {
+        errorEl.classList.add('hidden');
+        successEl.textContent = '✅ تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتأكيد الحساب.';
+        successEl.classList.remove('hidden');
+      }
+    } catch {
+      showNotConfigured(errorEl);
+    }
+  });
+
+  // Logout
+  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    const supabase = await getSupabase();
+    if (supabase) {
+      try { await supabase.auth.signOut(); } catch {}
+    }
+    showView('login');
+    updateNavAuth();
+  });
+
+  // Show donation toggle
+  document.getElementById('showDonationCheck')?.addEventListener('change', async (e) => {
+    const checked = (e.target as HTMLInputElement).checked;
+    const supabase = await getSupabase();
+    if (!supabase) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('profiles').update({ show_donation: checked }).eq('id', user.id);
+      }
+    } catch {}
+  });
+
+  // Check auth
+  async function checkAuth() {
+    const supabase = await getSupabase();
+    if (!supabase) { showView('login'); return; }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        showView('profile');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          (document.getElementById('profileName') as HTMLElement).textContent = profile.username;
+          (document.getElementById('profileEmail') as HTMLElement).textContent = user.email || '';
+          (document.getElementById('profileAvatar') as HTMLElement).textContent = profile.username[0];
+
+          const badgeEl = document.getElementById('profileBadge') as HTMLElement;
+          if (profile.badge) {
+            badgeEl.textContent = getBadgeLabel(profile.badge);
+            badgeEl.className = `profile-badge ${profile.badge}`;
+            badgeEl.classList.remove('hidden');
+          }
+
+          if (profile.is_donor) {
+            const info = profile.show_donation
+              ? `تبرعت بـ $${profile.donation_amount}`
+              : 'أنت متبرع 💚';
+            (document.getElementById('donationInfo') as HTMLElement).textContent = info;
+            (document.getElementById('donationToggle') as HTMLElement).style.display = 'block';
+            (document.getElementById('showDonationCheck') as HTMLInputElement).checked = profile.show_donation;
+          }
+        }
+      } else {
+        showView('login');
+      }
+    } catch {
+      showView('login');
+    }
+  }
+
+  function getBadgeLabel(badge: string): string {
+    const labels: Record<string, string> = {
+      bronze: '🥉 برونزي',
+      silver: '🥈 فضي',
+      gold: '🥇 ذهبي',
+      platinum: '💎 بلاتيني',
+    };
+    return labels[badge] || badge;
+  }
+
+  // Update navbar auth button
+  async function updateNavAuth() {
+    const authBtn = document.getElementById('authNavBtn');
+    if (!authBtn) return;
+
+    const guestText = authBtn.querySelector('.auth-text-guest') as HTMLElement;
+    const userText = authBtn.querySelector('.auth-text-user') as HTMLElement;
+
+    const supabase = await getSupabase();
+    if (!supabase) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, is_donor, badge')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          if (guestText) guestText.classList.add('hidden');
+          if (userText) {
+            const badgeIcon = profile.badge ? getBadgeLabel(profile.badge).split(' ')[0] + ' ' : '';
+            userText.textContent = `${badgeIcon}${profile.username}`;
+            userText.classList.remove('hidden');
+          }
+          authBtn.classList.add('logged-in');
+          authBtn.title = profile.username;
+          if (profile.is_donor) authBtn.classList.add('donor');
+          else authBtn.classList.remove('donor');
+        }
+      }
+    } catch {}
+  }
+
+  // Init — don't crash if Supabase isn't ready
+  updateNavAuth();
+
+  // Init
+  updateNavAuth();
+</script>

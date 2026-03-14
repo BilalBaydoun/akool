@@ -1,0 +1,470 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import SearchModal from '../components/SearchModal.astro';
+import { getCollection } from 'astro:content';
+
+const articles = await getCollection('articles');
+const foundations = await getCollection('foundations');
+---
+
+<BaseLayout title="لوحة التحكم — عَقول">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">🔐 إدارة</div>
+        <h2 class="section-title">لوحة تحكم عَقول</h2>
+        <p class="section-sub">راقب الوكلاء، راجع المحتوى، وتحكم في المنصة</p>
+      </div>
+
+      <!-- Admin Auth -->
+      <div id="adminAuth" class="enhancer-card" style="text-align:center;max-width:400px;margin:0 auto 2rem;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🔐</div>
+        <p style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;">أدخل كلمة مرور المدير</p>
+        <input type="password" id="adminPass" class="form-input" placeholder="كلمة المرور" style="margin-bottom:12px;text-align:center;" dir="ltr">
+        <button id="adminLoginBtn" class="btn-enhance" style="border-radius:50px;">دخول</button>
+        <div id="adminError" class="hidden" style="margin-top:10px;color:var(--rose);font-size:0.85rem;">كلمة مرور خاطئة</div>
+      </div>
+
+      <!-- Admin Dashboard (hidden until auth) -->
+      <div id="adminDashboard" class="hidden">
+
+        <!-- Stats Overview -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:2rem;">
+          <div class="lib-card" style="text-align:center;">
+            <div style="font-size:2rem;font-weight:900;color:var(--accent);">{articles.length}</div>
+            <div style="font-size:0.82rem;color:var(--text-muted);">مقال</div>
+          </div>
+          <div class="lib-card" style="text-align:center;">
+            <div style="font-size:2rem;font-weight:900;color:var(--blue);">{foundations.length}</div>
+            <div style="font-size:0.82rem;color:var(--text-muted);">دليل موسوعة</div>
+          </div>
+          <div class="lib-card" style="text-align:center;">
+            <div style="font-size:2rem;font-weight:900;color:var(--purple);">6</div>
+            <div style="font-size:0.82rem;color:var(--text-muted);">وكيل AI</div>
+          </div>
+          <div class="lib-card" style="text-align:center;">
+            <div style="font-size:2rem;font-weight:900;color:var(--orange);">24</div>
+            <div style="font-size:0.82rem;color:var(--text-muted);">صفحة</div>
+          </div>
+        </div>
+
+        <!-- Agent Control Panel -->
+        <div class="enhancer-card" style="margin-bottom:2rem;">
+          <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:1.25rem;">🤖 التحكم بالوكلاء</h3>
+          <div id="agentControls" class="admin-agent-grid">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- CEO Log -->
+        <div class="enhancer-card" style="margin-bottom:2rem;">
+          <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:1.25rem;">📋 سجل قرارات المدير التنفيذي (عَقول)</h3>
+          <div id="ceoLog">
+            <p style="color:var(--text-muted);font-size:0.9rem;">لم يتم تشغيل المدير التنفيذي بعد. قم بتشغيل الوكلاء من GitHub Actions.</p>
+          </div>
+        </div>
+
+        <!-- Content Review -->
+        <div class="enhancer-card" style="margin-bottom:2rem;">
+          <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:1.25rem;">📝 المحتوى المنشور</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            {articles.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).map((article) => (
+              <div class="admin-content-item">
+                <span style="font-size:1.2rem;">{article.data.emoji}</span>
+                <div style="flex:1;min-width:0;">
+                  <a href={`/articles/${article.id}`} style="font-size:0.9rem;font-weight:700;color:var(--text);">{article.data.title}</a>
+                  <div style="font-size:0.78rem;color:var(--text-muted);">{article.data.author} • {article.data.date.toLocaleDateString('ar-EG')}</div>
+                </div>
+                <button class="admin-delete-btn" data-id={article.id} title="حذف المقال">🗑️</button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Content Scheduling -->
+        <div class="enhancer-card" style="margin-bottom:2rem;">
+          <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:1.25rem;">📅 جدولة المحتوى</h3>
+
+          <!-- Schedule Form -->
+          <form id="scheduleForm" style="display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem;">
+            <input type="text" id="schedTitle" class="form-input" placeholder="عنوان المقال" required>
+            <select id="schedCategory" class="enhancer-select" required>
+              <option value="" disabled selected>اختر التصنيف</option>
+              <option value="news">أخبار</option>
+              <option value="tutorials">شروحات</option>
+              <option value="tips">نصائح</option>
+              <option value="tools">أدوات</option>
+            </select>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <input type="date" id="schedDate" class="form-input" required dir="ltr">
+              <input type="time" id="schedTime" class="form-input" required dir="ltr">
+            </div>
+            <textarea id="schedNotes" class="form-textarea" rows="3" placeholder="ملاحظات وتعليمات لوكيل الذكاء الاصطناعي..."></textarea>
+            <button type="submit" class="btn-enhance" style="border-radius:50px;align-self:flex-start;">جدول للنشر</button>
+          </form>
+
+          <!-- Scheduled Items List -->
+          <div id="scheduledList" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="enhancer-card" style="border:1.5px solid var(--rose);">
+          <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:0.5rem;color:var(--rose);">⚠️ منطقة الخطر</h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">إجراءات لا يمكن التراجع عنها. استخدمها بحذر.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button id="stopAllAgents" style="padding:8px 20px;border-radius:50px;background:none;border:1.5px solid var(--rose);color:var(--rose);font-weight:700;font-family:var(--font);font-size:0.85rem;cursor:pointer;">
+              ⏹️ إيقاف جميع الوكلاء
+            </button>
+            <button id="resetCeoLog" style="padding:8px 20px;border-radius:50px;background:none;border:1.5px solid var(--orange);color:var(--orange);font-weight:700;font-family:var(--font);font-size:0.85rem;cursor:pointer;">
+              🔄 مسح سجل القرارات
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .admin-agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .admin-agent-card {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .admin-agent-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .admin-agent-info { flex: 1; min-width: 0; }
+  .admin-agent-name { font-size: 0.9rem; font-weight: 700; }
+  .admin-agent-role { font-size: 0.78rem; color: var(--text-muted); }
+  .admin-agent-toggle {
+    position: relative;
+    width: 44px; height: 24px;
+    background: var(--border-strong);
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .admin-agent-toggle.active { background: var(--accent); }
+  .admin-agent-toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  .admin-agent-toggle.active::after { transform: translateX(20px); }
+  .admin-content-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+  }
+  .admin-delete-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+  .admin-delete-btn:hover { opacity: 1; }
+  .sched-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+  }
+  .sched-item-info { flex: 1; min-width: 0; }
+  .sched-item-title { font-size: 0.9rem; font-weight: 700; }
+  .sched-item-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .sched-status-pending { background: var(--orange); color: #fff; }
+  .sched-status-published { background: var(--accent); color: #fff; }
+  .sched-cancel-btn {
+    background: none;
+    border: 1.5px solid var(--rose);
+    color: var(--rose);
+    font-weight: 700;
+    font-family: var(--font);
+    font-size: 0.78rem;
+    padding: 4px 14px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .sched-cancel-btn:hover { opacity: 0.7; }
+</style>
+
+<script>
+  // Simple admin auth (password stored in localStorage for demo)
+  // In production, use Supabase admin role
+  const ADMIN_PASS = 'akool2026';
+
+  const authDiv = document.getElementById('adminAuth') as HTMLElement;
+  const dashboard = document.getElementById('adminDashboard') as HTMLElement;
+  const passInput = document.getElementById('adminPass') as HTMLInputElement;
+  const errorEl = document.getElementById('adminError') as HTMLElement;
+
+  // Check if already authenticated
+  if (localStorage.getItem('akool-admin') === 'true') {
+    authDiv.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    loadDashboard();
+  }
+
+  document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+    if (passInput.value === ADMIN_PASS) {
+      localStorage.setItem('akool-admin', 'true');
+      authDiv.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      errorEl.classList.add('hidden');
+      loadDashboard();
+    } else {
+      errorEl.classList.remove('hidden');
+    }
+  });
+
+  passInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('adminLoginBtn')?.click();
+  });
+
+  // Agent data
+  const agents = [
+    { id: 'akool', name: 'عَقول', avatar: '👨‍💼', role: 'المدير التنفيذي', active: true },
+    { id: 'noura', name: 'نوره', avatar: '👩‍💻', role: 'كاتبة المحتوى', active: true },
+    { id: 'basel', name: 'باسل', avatar: '👨‍💼', role: 'محلل الأخبار', active: true },
+    { id: 'reem', name: 'ريم', avatar: '👩‍🏫', role: 'مديرة المنتدى', active: true },
+    { id: 'tarek', name: 'طارق', avatar: '👨‍🎨', role: 'مسوّق', active: true },
+    { id: 'dana', name: 'دانة', avatar: '👩‍⚖️', role: 'مراجعة المحتوى', active: true },
+  ];
+
+  function loadDashboard() {
+    const grid = document.getElementById('agentControls') as HTMLElement;
+    const savedStates = JSON.parse(localStorage.getItem('akool-agent-states') || '{}');
+
+    grid.innerHTML = agents.map((agent) => {
+      const isActive = savedStates[agent.id] !== undefined ? savedStates[agent.id] : agent.active;
+      return `
+        <div class="admin-agent-card">
+          <div class="admin-agent-avatar">${agent.avatar}</div>
+          <div class="admin-agent-info">
+            <div class="admin-agent-name">${agent.name}</div>
+            <div class="admin-agent-role">${agent.role}</div>
+          </div>
+          <button class="admin-agent-toggle ${isActive ? 'active' : ''}" data-agent="${agent.id}" title="${isActive ? 'إيقاف' : 'تشغيل'}"></button>
+        </div>
+      `;
+    }).join('');
+
+    // Toggle handlers
+    grid.querySelectorAll('.admin-agent-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        const id = (btn as HTMLElement).dataset.agent || '';
+        const states = JSON.parse(localStorage.getItem('akool-agent-states') || '{}');
+        states[id] = btn.classList.contains('active');
+        localStorage.setItem('akool-agent-states', JSON.stringify(states));
+
+        const action = btn.classList.contains('active') ? 'تشغيل' : 'إيقاف';
+        const agentName = agents.find(a => a.id === id)?.name || id;
+        addLogEntry(`🔄 المدير: تم ${action} وكيل "${agentName}"`);
+      });
+    });
+
+    // Load CEO log
+    loadCeoLog();
+  }
+
+  function loadCeoLog() {
+    const logDiv = document.getElementById('ceoLog') as HTMLElement;
+    const entries = JSON.parse(localStorage.getItem('akool-admin-log') || '[]');
+
+    if (entries.length === 0) return;
+
+    logDiv.innerHTML = entries.slice(-20).reverse().map((entry: any) => `
+      <div style="padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;font-size:0.85rem;">
+        <span style="color:var(--text-light);font-size:0.75rem;">${new Date(entry.date).toLocaleString('ar-EG')}</span>
+        <div>${entry.text}</div>
+      </div>
+    `).join('');
+  }
+
+  function addLogEntry(text: string) {
+    const entries = JSON.parse(localStorage.getItem('akool-admin-log') || '[]');
+    entries.push({ date: new Date().toISOString(), text });
+    localStorage.setItem('akool-admin-log', JSON.stringify(entries.slice(-100)));
+    loadCeoLog();
+  }
+
+  // Danger zone
+  document.getElementById('stopAllAgents')?.addEventListener('click', () => {
+    if (!confirm('هل أنت متأكد من إيقاف جميع الوكلاء؟')) return;
+    const states: Record<string, boolean> = {};
+    agents.forEach(a => { states[a.id] = false; });
+    localStorage.setItem('akool-agent-states', JSON.stringify(states));
+    addLogEntry('⛔ المدير: تم إيقاف جميع الوكلاء');
+    loadDashboard();
+  });
+
+  document.getElementById('resetCeoLog')?.addEventListener('click', () => {
+    if (!confirm('هل أنت متأكد من مسح سجل القرارات؟')) return;
+    localStorage.removeItem('akool-admin-log');
+    addLogEntry('🔄 المدير: تم مسح السجل');
+    loadCeoLog();
+  });
+
+  // --- Content Scheduling ---
+  const SCHED_KEY = 'akool-scheduled-content';
+  const categoryLabels: Record<string, string> = {
+    news: 'أخبار',
+    tutorials: 'شروحات',
+    tips: 'نصائح',
+    tools: 'أدوات',
+  };
+
+  function getScheduledItems(): Array<{ id: string; title: string; category: string; date: string; time: string; notes: string; status: 'pending' | 'published' }> {
+    return JSON.parse(localStorage.getItem(SCHED_KEY) || '[]');
+  }
+
+  function saveScheduledItems(items: ReturnType<typeof getScheduledItems>) {
+    localStorage.setItem(SCHED_KEY, JSON.stringify(items));
+  }
+
+  function checkScheduledDueDates() {
+    const items = getScheduledItems();
+    const now = new Date();
+    let changed = false;
+    items.forEach((item) => {
+      if (item.status === 'pending') {
+        const scheduled = new Date(`${item.date}T${item.time}`);
+        if (scheduled <= now) {
+          item.status = 'published';
+          changed = true;
+          addLogEntry(`📅 جدولة: تم نشر "${item.title}" (تلقائي — موعد مجدول)`);
+        }
+      }
+    });
+    if (changed) {
+      saveScheduledItems(items);
+    }
+  }
+
+  function renderScheduledList() {
+    const list = document.getElementById('scheduledList') as HTMLElement;
+    const items = getScheduledItems();
+
+    if (items.length === 0) {
+      list.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">لا توجد مقالات مجدولة بعد.</p>';
+      return;
+    }
+
+    list.innerHTML = items.map((item) => {
+      const statusClass = item.status === 'pending' ? 'sched-status-pending' : 'sched-status-published';
+      const statusLabel = item.status === 'pending' ? 'قيد الانتظار' : 'تم النشر';
+      const cancelBtn = item.status === 'pending'
+        ? `<button class="sched-cancel-btn" data-sched-id="${item.id}">إلغاء</button>`
+        : '';
+      return `
+        <div class="sched-item">
+          <div class="sched-item-info">
+            <div class="sched-item-title">${item.title}</div>
+            <div class="sched-item-meta">
+              <span class="blog-tag">${categoryLabels[item.category] || item.category}</span>
+              <span>${item.date} — ${item.time}</span>
+              <span class="blog-tag ${statusClass}" style="font-size:0.72rem;">${statusLabel}</span>
+            </div>
+          </div>
+          ${cancelBtn}
+        </div>
+      `;
+    }).join('');
+
+    // Cancel handlers
+    list.querySelectorAll('.sched-cancel-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.schedId;
+        const current = getScheduledItems();
+        const updated = current.filter((i) => i.id !== id);
+        const removed = current.find((i) => i.id === id);
+        saveScheduledItems(updated);
+        if (removed) addLogEntry(`❌ جدولة: تم إلغاء "${removed.title}"`);
+        renderScheduledList();
+      });
+    });
+  }
+
+  // Schedule form submission
+  document.getElementById('scheduleForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = (document.getElementById('schedTitle') as HTMLInputElement).value.trim();
+    const category = (document.getElementById('schedCategory') as HTMLSelectElement).value;
+    const date = (document.getElementById('schedDate') as HTMLInputElement).value;
+    const time = (document.getElementById('schedTime') as HTMLInputElement).value;
+    const notes = (document.getElementById('schedNotes') as HTMLTextAreaElement).value.trim();
+
+    if (!title || !category || !date || !time) return;
+
+    const items = getScheduledItems();
+    items.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      title,
+      category,
+      date,
+      time,
+      notes,
+      status: 'pending',
+    });
+    saveScheduledItems(items);
+    addLogEntry(`📅 جدولة: تمت جدولة "${title}" في ${date} الساعة ${time}`);
+
+    // Reset form
+    (document.getElementById('scheduleForm') as HTMLFormElement).reset();
+    renderScheduledList();
+  });
+
+  // On page load: check due dates and render
+  checkScheduledDueDates();
+  renderScheduledList();
+
+  // Delete article buttons
+  document.querySelectorAll('.admin-delete-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).dataset.id;
+      addLogEntry(`🗑️ المدير: تم وضع علامة حذف على مقال "${id}" — يحتاج تنفيذ يدوي (حذف الملف من Git)`);
+      (btn as HTMLElement).textContent = '✅';
+      (btn as HTMLElement).style.opacity = '1';
+    });
+  });
+</script>

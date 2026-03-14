@@ -1,0 +1,47 @@
+---
+interface Props {
+  /** The raw article body text (Markdown or plain text) */
+  content: string;
+  /** Average words per minute for Arabic text (default: 200) */
+  wpm?: number;
+}
+
+const { content, wpm = 200 } = Astro.props;
+
+// Strip Markdown syntax for a cleaner word count
+const plainText = content
+  .replace(/```[\s\S]*?```/g, '')       // code blocks
+  .replace(/`[^`]*`/g, '')              // inline code
+  .replace(/!\[.*?\]\(.*?\)/g, '')      // images
+  .replace(/\[([^\]]*)\]\(.*?\)/g, '$1') // links → text only
+  .replace(/[#*_~>|-]/g, '')            // Markdown formatting chars
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / wpm));
+---
+
+<span class="reading-time" aria-label={`وقت القراءة: ${readingTime} دقيقة`}>
+  <svg class="reading-time-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <polyline points="12 6 12 12 16 14"></polyline>
+  </svg>
+  <span>{readingTime} دقيقة قراءة</span>
+</span>
+
+<style>
+  .reading-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--text-muted, #6B6860);
+    line-height: 1;
+  }
+
+  .reading-time-icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+</style>

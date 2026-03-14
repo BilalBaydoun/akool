@@ -1,0 +1,77 @@
+---
+const tips = [
+  {
+    icon: '🎯', color: 'var(--accent-light)', textColor: 'var(--accent)',
+    title: 'استخدم "أنت خبير في..."',
+    desc: 'ابدأ البرومبت بتحديد دور للـ AI. مثلاً: "أنت خبير تسويق بخبرة 20 سنة" — هذا يحسّن جودة الإجابة بشكل ملحوظ.',
+    tags: ['برومبت', 'أساسي'],
+  },
+  {
+    icon: '🔄', color: 'var(--blue-light)', textColor: 'var(--blue)',
+    title: 'كرر وحسّن',
+    desc: 'لا تكتفِ بالرد الأول. اطلب من AI تحسين إجابته: "حسّن هذا" أو "اجعله أكثر تفصيلاً" أو "غيّر الأسلوب".',
+    tags: ['برومبت', 'متقدم'],
+  },
+  {
+    icon: '📐', color: 'var(--purple-light)', textColor: 'var(--purple)',
+    title: 'حدد الشكل والطول',
+    desc: 'اذكر شكل الإجابة المطلوب: "في 5 نقاط"، "في جدول"، "في 200 كلمة"، "بصيغة JSON". النتائج ستكون أدق.',
+    tags: ['برومبت', 'تنظيم'],
+  },
+  {
+    icon: '🌍', color: 'var(--orange-light)', textColor: 'var(--orange)',
+    title: 'استخدم AI في كل شيء',
+    desc: 'من كتابة الإيميلات وتلخيص الاجتماعات إلى تحليل البيانات وتعلّم مهارات جديدة — وفّر ساعات يومياً.',
+    tags: ['إنتاجية', 'عملي'],
+  },
+  {
+    icon: '🧩', color: 'var(--rose-light)', textColor: 'var(--rose)',
+    title: 'قسّم المهام الكبيرة',
+    desc: 'بدلاً من طلب مشروع كامل دفعة واحدة، قسّمه لخطوات صغيرة. AI يعمل أفضل مع مهام محددة ومركّزة.',
+    tags: ['برومبت', 'استراتيجية'],
+  },
+  {
+    icon: '📚', color: 'var(--blue-light)', textColor: 'var(--blue)',
+    title: 'أعطِ أمثلة',
+    desc: 'قدّم مثالاً على النتيجة المتوقعة: "اكتب بأسلوب مشابه لهذا المثال: ..." — هذا يُسمى Few-shot prompting.',
+    tags: ['برومبت', 'متقدم'],
+  },
+  {
+    icon: '⚡', color: 'var(--accent-light)', textColor: 'var(--accent)',
+    title: 'جرّب نماذج مختلفة',
+    desc: 'كل نموذج (GPT, Claude, Gemini) له نقاط قوة مختلفة. جرّب أكثر من واحد لنفس المهمة واختر الأفضل.',
+    tags: ['أدوات', 'مقارنة'],
+  },
+  {
+    icon: '🔗', color: 'var(--purple-light)', textColor: 'var(--purple)',
+    title: 'ادمج الأدوات',
+    desc: 'استخدم ChatGPT للكتابة + Midjourney للصور + Canva للتصميم = محتوى احترافي بدون فريق كامل.',
+    tags: ['إنتاجية', 'أدوات'],
+  },
+];
+---
+
+<section class="section" id="tips">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">🧠 طوّر مهاراتك</div>
+      <h2 class="section-title">نصائح وحيل AI</h2>
+      <p class="section-sub">نصائح عملية لتحسين استخدامك للذكاء الاصطناعي في العمل والحياة</p>
+    </div>
+
+    <div class="library-grid">
+      {tips.map((tip) => (
+        <div class="lib-card">
+          <div class="lib-icon" style={`background:${tip.color};color:${tip.textColor};`}>
+            {tip.icon}
+          </div>
+          <h3>{tip.title}</h3>
+          <p>{tip.desc}</p>
+          <div class="lib-tags">
+            {tip.tags.map((tag) => <span>{tag}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

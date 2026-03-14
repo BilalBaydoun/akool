@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://akool.vercel.app/sitemap-index.xml

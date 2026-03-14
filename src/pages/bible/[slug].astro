@@ -1,0 +1,913 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import ChatWidget from '../../components/ChatWidget.astro';
+import SearchModal from '../../components/SearchModal.astro';
+import { quizzes } from '../../data/bible-quizzes';
+import { bibleArticles } from '../../data/bible-sections';
+import { bibleArticles2 } from '../../data/bible-sections-2';
+
+export async function getStaticPaths() {
+  const foundations = await getCollection('foundations');
+  const merged = { ...bibleArticles, ...bibleArticles2 };
+  const paths = foundations.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+
+  const foundationIds = new Set(foundations.map((e) => e.id));
+  for (const key of Object.keys(merged)) {
+    if (!foundationIds.has(key)) {
+      paths.push({
+        params: { slug: key },
+        props: { entry: null as any },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { entry } = Astro.props;
+const slug = Astro.params.slug!;
+const allBible = { ...bibleArticles, ...bibleArticles2 };
+const sectionArticle = allBible[slug];
+
+// Only render markdown if we have an entry AND it's NOT a section-based article
+let Content: any = null;
+let articleQuiz: any[] = [];
+if (entry && !sectionArticle) {
+  const rendered = await render(entry);
+  Content = rendered.Content;
+  articleQuiz = quizzes[entry.id] || [];
+}
+
+const title = sectionArticle?.title || entry?.data?.title || '';
+const description = sectionArticle?.description || entry?.data?.description || '';
+const icon = sectionArticle?.icon || entry?.data?.icon || '';
+---
+
+<BaseLayout title={`${title} — موسوعة عَقول`} description={description}>
+  <!-- Reading Progress Bar -->
+  <div id="reading-progress" style="position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg, var(--accent), var(--accent-dark, var(--accent)));z-index:1001;transition:width 0.1s linear;"></div>
+
+  <Navbar />
+  <SearchModal />
+
+  <article class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:800px;">
+      <!-- Back link -->
+      <a href="/bible/" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:0.9rem;margin-bottom:2rem;">
+        → العودة للموسوعة
+      </a>
+
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:3rem;">
+        <div style="font-size:4rem;margin-bottom:1rem;">{icon}</div>
+        <h1 style="font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:900;line-height:1.4;margin-bottom:1rem;">
+          {title}
+        </h1>
+        <p style="color:var(--text-muted);font-size:1.05rem;line-height:1.8;">
+          {description}
+        </p>
+      </div>
+
+      {sectionArticle ? (
+        <!-- ═══════ SECTION-BASED ARTICLE ═══════ -->
+        <div id="sectionApp" data-article-id={sectionArticle.id} data-total-sections={sectionArticle.sections.length}>
+          <!-- Progress Bar -->
+          <div class="section-progress-bar">
+            <div class="section-progress-fill" id="sectionProgressFill"></div>
+          </div>
+          <div class="section-progress-text" id="sectionProgressText"></div>
+
+          <!-- Section Map (mini nav) -->
+          <div class="section-map" id="sectionMap">
+            {sectionArticle.sections.map((sec, i) => (
+              <button class="section-map-item" data-section-idx={i} title={sec.title}>
+                <span class="section-map-emoji">{sec.emoji}</span>
+                <span class="section-map-lock">🔒</span>
+              </button>
+            ))}
+          </div>
+
+          <!-- All Sections (only one visible at a time) -->
+          {sectionArticle.sections.map((sec, sIdx) => (
+            <div class="section-panel" data-section-idx={sIdx} style="display:none;">
+              <div class="section-header">
+                <span style="font-size:2rem;">{sec.emoji}</span>
+                <h2 style="font-size:1.3rem;font-weight:900;margin:0;">{sec.title}</h2>
+              </div>
+
+              <div class="article-content" set:html={sec.content} />
+
+              <!-- Section Quiz -->
+              <div class="section-quiz-block" style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+                <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:0.5rem;">🧩 اختبر فهمك لهذا القسم</h3>
+                <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">أجب على الأسئلة للانتقال للقسم التالي</p>
+
+                {sec.quiz.map((q, qIdx) => (
+                  <div class="bible-quiz-card section-quiz-card" data-correct={q.correct} data-section={sIdx} data-quiz={qIdx}>
+                    <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;">{qIdx + 1}. {q.question}</h3>
+                    <div class="bible-quiz-options">
+                      {q.options.map((opt, oIdx) => (
+                        <button class="bible-quiz-option section-quiz-btn" data-idx={oIdx}>{opt}</button>
+                      ))}
+                    </div>
+                    <div class="bible-quiz-explanation hidden" style="margin-top:10px;padding:10px 14px;border-radius:var(--radius-sm);font-size:0.85rem;line-height:1.7;">
+                      {q.explanation}
+                    </div>
+                  </div>
+                ))}
+
+                <!-- Quiz status for this section -->
+                <div class="section-quiz-status hidden" data-section={sIdx}>
+                  <span class="section-quiz-score"></span>
+                </div>
+              </div>
+
+              <!-- Navigation Buttons -->
+              <div class="section-nav" style="margin-top:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+                {sIdx > 0 && (
+                  <button class="btn-outline section-prev-btn" data-target={sIdx - 1} style="padding:10px 20px;font-size:0.9rem;">
+                    ← القسم السابق
+                  </button>
+                )}
+                {sIdx === 0 && <div></div>}
+
+                {sIdx < sectionArticle.sections.length - 1 ? (
+                  <button class="btn-primary section-next-btn" data-target={sIdx + 1} data-section={sIdx} disabled style="padding:10px 20px;font-size:0.9rem;opacity:0.5;cursor:not-allowed;">
+                    🔒 القسم التالي →
+                  </button>
+                ) : (
+                  <button class="btn-primary section-complete-btn" data-section={sIdx} disabled style="padding:10px 20px;font-size:0.9rem;opacity:0.5;cursor:not-allowed;">
+                    🔒 إنهاء المقال
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+          <!-- Completion Screen -->
+          <div id="completionScreen" style="display:none;">
+            <div style="text-align:center;padding:3rem 1rem;">
+              <div style="font-size:4rem;margin-bottom:1rem;">🎉🎊</div>
+              <h2 style="font-size:1.5rem;font-weight:900;margin-bottom:0.75rem;">أحسنت! أكملت المقال بالكامل</h2>
+              <div id="completionScore" style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:0.5rem;"></div>
+              <p id="completionMsg" style="color:var(--text-muted);font-size:1rem;margin-bottom:2rem;"></p>
+              <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                <a href="/bible/" class="btn-primary" style="padding:12px 24px;font-size:0.95rem;">→ العودة للموسوعة</a>
+                <button class="btn-outline" id="restartArticleBtn" style="padding:12px 24px;font-size:0.95rem;">🔄 أعد القراءة</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <!-- ═══════ MARKDOWN FALLBACK ═══════ -->
+        <>
+          <!-- Table of Contents -->
+          <div class="toc-card" id="toc-card" style="display:none;">
+            <div class="toc-header" id="toc-toggle" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:1rem 1.25rem;">
+              <span style="font-weight:700;font-size:1rem;">📑 فهرس المقال</span>
+              <span id="toc-arrow" style="transition:transform 0.3s;">▼</span>
+            </div>
+            <nav id="toc-list" style="padding:0 1.25rem 1rem;"></nav>
+          </div>
+
+          <!-- Content -->
+          <div class="article-content">
+            {Content && <Content />}
+          </div>
+
+          <!-- Quiz -->
+          {articleQuiz.length > 0 && (
+            <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border);">
+              <h2 style="font-size:1.3rem;font-weight:900;margin-bottom:0.5rem;">🧩 اختبر فهمك</h2>
+              <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1.5rem;">أجب على هذه الأسئلة للتأكد من فهمك للمادة</p>
+
+              <div id="bibleQuiz">
+                {articleQuiz.map((q, i) => (
+                  <div class="bible-quiz-card" data-correct={q.correct}>
+                    <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;">{i + 1}. {q.question}</h3>
+                    <div class="bible-quiz-options">
+                      {q.options.map((opt, j) => (
+                        <button class="bible-quiz-option" data-idx={j}>{opt}</button>
+                      ))}
+                    </div>
+                    <div class="bible-quiz-explanation hidden" style="margin-top:10px;padding:10px 14px;border-radius:var(--radius-sm);font-size:0.85rem;line-height:1.7;">
+                      {q.explanation}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div id="bibleQuizScore" class="hidden" style="text-align:center;margin-top:1.5rem;padding:1.5rem;background:var(--accent-light);border-radius:var(--radius-lg);">
+                <div style="font-size:2.5rem;margin-bottom:0.5rem;">🎉</div>
+                <h3 style="font-size:1.2rem;font-weight:900;" id="bibleScoreText"></h3>
+                <p style="color:var(--text-muted);margin-top:0.5rem;" id="bibleScoreMsg"></p>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      <!-- Back -->
+      <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+        <a href="/bible/" class="btn-outline" style="padding:10px 20px;font-size:0.85rem;">→ العودة للموسوعة</a>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn-outline" style="padding:6px 14px;font-size:0.8rem;" onclick="window.print()">🖨️ طباعة</button>
+          <button class="btn-primary" style="padding:6px 14px;font-size:0.8rem;" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='✅ تم!';setTimeout(()=>this.textContent='📋 نسخ الرابط',2000)">
+            📋 نسخ الرابط
+          </button>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ═══════ SECTION-BASED ARTICLE LOGIC ═══════
+    const sectionApp = document.getElementById('sectionApp') as HTMLElement | null;
+    if (sectionApp) {
+      const articleId = sectionApp.dataset.articleId || '';
+      const totalSections = parseInt(sectionApp.dataset.totalSections || '0');
+      const storageKey = `akool-bible-progress-${articleId}`;
+      const scoresKey = 'akool-bible-scores';
+
+      // State
+      interface Progress {
+        currentSection: number;
+        scores: number[];
+        completed: boolean;
+        answeredQuizzes: Record<string, boolean>; // "sectionIdx-quizIdx" => true
+      }
+
+      let progress: Progress = {
+        currentSection: 0,
+        scores: new Array(totalSections).fill(-1), // -1 means not attempted
+        completed: false,
+        answeredQuizzes: {}
+      };
+
+      // Load saved progress
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          progress = { ...progress, ...parsed };
+          // Ensure scores array is correct length
+          while (progress.scores.length < totalSections) progress.scores.push(-1);
+        }
+      } catch {}
+
+      function saveProgress() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(progress));
+        } catch {}
+      }
+
+      function saveTotalScore() {
+        try {
+          const allScores = JSON.parse(localStorage.getItem(scoresKey) || '{}');
+          const totalCorrect = progress.scores.reduce((sum, s) => sum + (s > 0 ? s : 0), 0);
+          const totalQuestions = document.querySelectorAll(`.section-quiz-card[data-section]`).length;
+          allScores[articleId] = `${totalCorrect}/${totalQuestions}`;
+          localStorage.setItem(scoresKey, JSON.stringify(allScores));
+        } catch {}
+      }
+
+      // Track answered count per section
+      const sectionAnsweredCount: Record<number, number> = {};
+      const sectionCorrectCount: Record<number, number> = {};
+      const sectionTotalQuizzes: Record<number, number> = {};
+
+      // Count quizzes per section
+      for (let s = 0; s < totalSections; s++) {
+        const cards = document.querySelectorAll(`.section-quiz-card[data-section="${s}"]`);
+        sectionTotalQuizzes[s] = cards.length;
+        sectionAnsweredCount[s] = 0;
+        sectionCorrectCount[s] = 0;
+      }
+
+      // Restore already-answered state
+      for (const key of Object.keys(progress.answeredQuizzes)) {
+        const [sStr, qStr] = key.split('-');
+        const sIdx = parseInt(sStr);
+        const qIdx = parseInt(qStr);
+        const card = document.querySelector(`.section-quiz-card[data-section="${sIdx}"][data-quiz="${qIdx}"]`) as HTMLElement;
+        if (card) {
+          const correctIdx = parseInt(card.dataset.correct || '0');
+          const buttons = card.querySelectorAll('.section-quiz-btn');
+          const explanation = card.querySelector('.bible-quiz-explanation') as HTMLElement;
+          buttons.forEach((btn, j) => {
+            (btn as HTMLButtonElement).disabled = true;
+            if (j === correctIdx) btn.classList.add('correct');
+          });
+          if (explanation) {
+            explanation.classList.remove('hidden');
+            explanation.style.background = 'var(--accent-light)';
+            explanation.style.color = 'var(--accent)';
+          }
+          sectionAnsweredCount[sIdx] = (sectionAnsweredCount[sIdx] || 0) + 1;
+        }
+      }
+
+      // Recalculate correct counts from scores
+      for (let s = 0; s < totalSections; s++) {
+        if (progress.scores[s] >= 0) {
+          sectionCorrectCount[s] = progress.scores[s];
+        }
+      }
+
+      function showSection(idx: number) {
+        // Hide all sections
+        document.querySelectorAll('.section-panel').forEach((p) => {
+          (p as HTMLElement).style.display = 'none';
+        });
+        // Show target
+        const target = document.querySelector(`.section-panel[data-section-idx="${idx}"]`) as HTMLElement;
+        if (target) target.style.display = 'block';
+
+        // Update progress bar
+        const fill = document.getElementById('sectionProgressFill') as HTMLElement;
+        const text = document.getElementById('sectionProgressText') as HTMLElement;
+        const pct = ((idx + 1) / totalSections) * 100;
+        if (fill) fill.style.width = pct + '%';
+        if (text) text.textContent = `القسم ${idx + 1} من ${totalSections}`;
+
+        // Update section map
+        document.querySelectorAll('.section-map-item').forEach((item, i) => {
+          const el = item as HTMLElement;
+          el.classList.remove('active', 'unlocked', 'completed');
+          if (i === idx) el.classList.add('active');
+          if (i <= progress.currentSection) {
+            el.classList.add('unlocked');
+            const lock = el.querySelector('.section-map-lock') as HTMLElement;
+            if (lock) lock.style.display = 'none';
+            const emoji = el.querySelector('.section-map-emoji') as HTMLElement;
+            if (emoji) emoji.style.display = '';
+          } else {
+            const lock = el.querySelector('.section-map-lock') as HTMLElement;
+            if (lock) lock.style.display = '';
+            const emoji = el.querySelector('.section-map-emoji') as HTMLElement;
+            if (emoji) emoji.style.display = 'none';
+          }
+          // Mark completed sections
+          if (sectionAnsweredCount[i] >= sectionTotalQuizzes[i] && sectionTotalQuizzes[i] > 0) {
+            el.classList.add('completed');
+          }
+        });
+
+        // Check if current section quiz is already fully answered → unlock next
+        checkSectionUnlock(idx);
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        progress.currentSection = Math.max(progress.currentSection, idx);
+        saveProgress();
+      }
+
+      function checkSectionUnlock(sIdx: number) {
+        const answered = sectionAnsweredCount[sIdx] || 0;
+        const total = sectionTotalQuizzes[sIdx] || 0;
+        if (answered >= total && total > 0) {
+          // Unlock next button
+          const nextBtn = document.querySelector(`.section-next-btn[data-section="${sIdx}"]`) as HTMLButtonElement;
+          const completeBtn = document.querySelector(`.section-complete-btn[data-section="${sIdx}"]`) as HTMLButtonElement;
+          if (nextBtn) {
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+            nextBtn.innerHTML = 'القسم التالي →';
+          }
+          if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.style.opacity = '1';
+            completeBtn.style.cursor = 'pointer';
+            completeBtn.innerHTML = '🎉 إنهاء المقال';
+          }
+          // Show status
+          const status = document.querySelector(`.section-quiz-status[data-section="${sIdx}"]`) as HTMLElement;
+          if (status) {
+            status.classList.remove('hidden');
+            const correct = sectionCorrectCount[sIdx] || 0;
+            const scoreEl = status.querySelector('.section-quiz-score') as HTMLElement;
+            if (scoreEl) {
+              scoreEl.textContent = `نتيجتك: ${correct} من ${total} ✓`;
+            }
+          }
+        }
+      }
+
+      // Handle quiz button clicks (section-based)
+      document.querySelectorAll('.section-quiz-card').forEach((card) => {
+        const el = card as HTMLElement;
+        const sIdx = parseInt(el.dataset.section || '0');
+        const qIdx = parseInt(el.dataset.quiz || '0');
+        const correctIdx = parseInt(el.dataset.correct || '0');
+        const explanation = el.querySelector('.bible-quiz-explanation') as HTMLElement;
+        const buttons = el.querySelectorAll('.section-quiz-btn');
+
+        buttons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const quizKey = `${sIdx}-${qIdx}`;
+            if (progress.answeredQuizzes[quizKey]) return;
+
+            const idx = parseInt((btn as HTMLElement).dataset.idx || '0');
+            const isCorrect = idx === correctIdx;
+
+            buttons.forEach((b, j) => {
+              (b as HTMLButtonElement).disabled = true;
+              if (j === correctIdx) b.classList.add('correct');
+            });
+
+            if (isCorrect) {
+              btn.classList.add('correct');
+              sectionCorrectCount[sIdx] = (sectionCorrectCount[sIdx] || 0) + 1;
+            } else {
+              btn.classList.add('wrong');
+            }
+
+            if (explanation) {
+              explanation.classList.remove('hidden');
+              explanation.style.background = isCorrect ? 'var(--accent-light)' : 'var(--rose-light)';
+              explanation.style.color = isCorrect ? 'var(--accent)' : 'var(--rose)';
+            }
+
+            sectionAnsweredCount[sIdx] = (sectionAnsweredCount[sIdx] || 0) + 1;
+            progress.answeredQuizzes[quizKey] = true;
+            progress.scores[sIdx] = sectionCorrectCount[sIdx] || 0;
+            saveProgress();
+
+            checkSectionUnlock(sIdx);
+          });
+        });
+      });
+
+      // Next section buttons
+      document.querySelectorAll('.section-next-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = parseInt((btn as HTMLElement).dataset.target || '0');
+          if (!(btn as HTMLButtonElement).disabled) {
+            progress.currentSection = Math.max(progress.currentSection, target);
+            saveProgress();
+            showSection(target);
+          }
+        });
+      });
+
+      // Previous section buttons
+      document.querySelectorAll('.section-prev-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = parseInt((btn as HTMLElement).dataset.target || '0');
+          showSection(target);
+        });
+      });
+
+      // Complete button
+      document.querySelectorAll('.section-complete-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (!(btn as HTMLButtonElement).disabled) {
+            progress.completed = true;
+            saveProgress();
+            saveTotalScore();
+
+            // Hide all sections, show completion
+            document.querySelectorAll('.section-panel').forEach((p) => {
+              (p as HTMLElement).style.display = 'none';
+            });
+            const completionScreen = document.getElementById('completionScreen') as HTMLElement;
+            if (completionScreen) completionScreen.style.display = 'block';
+
+            // Calculate total score
+            const totalCorrect = progress.scores.reduce((sum, s) => sum + (s > 0 ? s : 0), 0);
+            const totalQuestions = Object.values(sectionTotalQuizzes).reduce((sum, t) => sum + t, 0);
+            const scoreEl = document.getElementById('completionScore') as HTMLElement;
+            const msgEl = document.getElementById('completionMsg') as HTMLElement;
+            if (scoreEl) scoreEl.textContent = `النتيجة: ${totalCorrect} من ${totalQuestions} إجابة صحيحة`;
+            if (msgEl) {
+              const pct = totalCorrect / totalQuestions;
+              msgEl.textContent = pct === 1 ? 'ممتاز! فهمت الموضوع بالكامل' : pct >= 0.7 ? 'أداء رائع! راجع النقاط التي أخطأت فيها' : pct >= 0.5 ? 'جيد! حاول مراجعة الأقسام مرة أخرى' : 'اقرأ المقال مرة أخرى وحاول من جديد';
+            }
+
+            // Update progress bar to 100%
+            const fill = document.getElementById('sectionProgressFill') as HTMLElement;
+            const text = document.getElementById('sectionProgressText') as HTMLElement;
+            if (fill) fill.style.width = '100%';
+            if (text) text.textContent = `اكتمل! ✓`;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
+
+      // Section map clicks
+      document.querySelectorAll('.section-map-item').forEach((item, i) => {
+        item.addEventListener('click', () => {
+          if (i <= progress.currentSection) {
+            showSection(i);
+          }
+        });
+      });
+
+      // Restart button
+      const restartBtn = document.getElementById('restartArticleBtn');
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+          try { localStorage.removeItem(storageKey); } catch {}
+          window.location.reload();
+        });
+      }
+
+      // Initialize: show saved section or first section
+      if (progress.completed) {
+        // Show completion screen directly
+        document.querySelectorAll('.section-panel').forEach((p) => {
+          (p as HTMLElement).style.display = 'none';
+        });
+        const completionScreen = document.getElementById('completionScreen') as HTMLElement;
+        if (completionScreen) completionScreen.style.display = 'block';
+        const totalCorrect = progress.scores.reduce((sum, s) => sum + (s > 0 ? s : 0), 0);
+        const totalQuestions = Object.values(sectionTotalQuizzes).reduce((sum, t) => sum + t, 0);
+        const scoreEl = document.getElementById('completionScore') as HTMLElement;
+        const msgEl = document.getElementById('completionMsg') as HTMLElement;
+        if (scoreEl) scoreEl.textContent = `النتيجة: ${totalCorrect} من ${totalQuestions} إجابة صحيحة`;
+        if (msgEl) {
+          const pct = totalCorrect / totalQuestions;
+          msgEl.textContent = pct === 1 ? 'ممتاز! فهمت الموضوع بالكامل' : pct >= 0.7 ? 'أداء رائع! راجع النقاط التي أخطأت فيها' : pct >= 0.5 ? 'جيد! حاول مراجعة الأقسام مرة أخرى' : 'اقرأ المقال مرة أخرى وحاول من جديد';
+        }
+        const fill = document.getElementById('sectionProgressFill') as HTMLElement;
+        const text = document.getElementById('sectionProgressText') as HTMLElement;
+        if (fill) fill.style.width = '100%';
+        if (text) text.textContent = `اكتمل! ✓`;
+        // Still update map
+        document.querySelectorAll('.section-map-item').forEach((item, i) => {
+          const el = item as HTMLElement;
+          el.classList.add('unlocked', 'completed');
+          const lock = el.querySelector('.section-map-lock') as HTMLElement;
+          if (lock) lock.style.display = 'none';
+          const emoji = el.querySelector('.section-map-emoji') as HTMLElement;
+          if (emoji) emoji.style.display = '';
+        });
+      } else {
+        showSection(Math.min(progress.currentSection, totalSections - 1));
+      }
+
+      return; // Skip markdown logic
+    }
+
+    // ═══════ MARKDOWN FALLBACK LOGIC ═══════
+    const content = document.querySelector('.article-content');
+    const tocCard = document.getElementById('toc-card');
+    const tocList = document.getElementById('toc-list');
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocArrow = document.getElementById('toc-arrow');
+
+    if (content && tocCard && tocList) {
+      const headings = content.querySelectorAll('h2, h3');
+      if (headings.length > 1) {
+        headings.forEach((heading, i) => {
+          const id = 'heading-' + i + '-' + heading.textContent!.trim().replace(/\s+/g, '-').replace(/[^\u0600-\u06FF\w-]/g, '');
+          heading.id = id;
+          const link = document.createElement('a');
+          link.href = '#' + id;
+          link.textContent = heading.textContent;
+          if (heading.tagName === 'H3') {
+            link.classList.add('toc-h3');
+          }
+          tocList.appendChild(link);
+        });
+        tocCard.style.display = 'block';
+
+        let tocOpen = true;
+        tocToggle!.addEventListener('click', () => {
+          tocOpen = !tocOpen;
+          tocList.style.display = tocOpen ? 'flex' : 'none';
+          tocArrow!.style.transform = tocOpen ? '' : 'rotate(-90deg)';
+        });
+      }
+    }
+
+    // Reading progress bar
+    const progressBar = document.getElementById('reading-progress');
+    const article = document.querySelector('.article-content');
+    if (progressBar && article) {
+      window.addEventListener('scroll', () => {
+        const articleTop = (article as HTMLElement).offsetTop;
+        const articleHeight = (article as HTMLElement).offsetHeight;
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const progress = Math.min(100, Math.max(0, ((scrollY - articleTop + windowHeight) / (articleHeight + windowHeight)) * 100));
+        progressBar.style.width = progress + '%';
+      }, { passive: true });
+    }
+
+    // ── BIBLE QUIZ (markdown fallback) ──
+    let bibleAnswered = 0;
+    let bibleCorrect = 0;
+    const quizCards = document.querySelectorAll('#bibleQuiz .bible-quiz-card');
+    const bibleTotal = quizCards.length;
+
+    quizCards.forEach((card) => {
+      const correctIdx = parseInt((card as HTMLElement).dataset.correct || '0');
+      const explanation = card.querySelector('.bible-quiz-explanation') as HTMLElement;
+      const buttons = card.querySelectorAll('.bible-quiz-option');
+
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt((btn as HTMLElement).dataset.idx || '0');
+          const isCorrect = idx === correctIdx;
+
+          buttons.forEach((b, j) => {
+            (b as HTMLButtonElement).disabled = true;
+            if (j === correctIdx) b.classList.add('correct');
+          });
+
+          if (isCorrect) {
+            btn.classList.add('correct');
+            bibleCorrect++;
+          } else {
+            btn.classList.add('wrong');
+          }
+
+          explanation.classList.remove('hidden');
+          explanation.style.background = isCorrect ? 'var(--accent-light)' : 'var(--rose-light)';
+          explanation.style.color = isCorrect ? 'var(--accent)' : 'var(--rose)';
+
+          bibleAnswered++;
+          if (bibleAnswered === bibleTotal) {
+            const scoreDiv = document.getElementById('bibleQuizScore') as HTMLElement;
+            const scoreText = document.getElementById('bibleScoreText') as HTMLElement;
+            const scoreMsg = document.getElementById('bibleScoreMsg') as HTMLElement;
+            scoreDiv.classList.remove('hidden');
+            scoreText.textContent = `نتيجتك: ${bibleCorrect} من ${bibleTotal}`;
+            scoreMsg.textContent = bibleCorrect === bibleTotal ? 'ممتاز! فهمت الموضوع بالكامل 🌟' : bibleCorrect >= bibleTotal / 2 ? 'جيد! راجع النقاط التي أخطأت فيها 💪' : 'اقرأ المقال مرة أخرى وحاول من جديد 📚';
+            scoreDiv.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  /* ── Section Progress Bar ── */
+  .section-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .section-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark, var(--accent)));
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .section-progress-text {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Section Map (mini nav) ── */
+  .section-map {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .section-map-item {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: not-allowed;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .section-map-item.unlocked {
+    cursor: pointer;
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .section-map-item.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+  .section-map-item.active .section-map-emoji {
+    filter: brightness(10);
+  }
+  .section-map-item.completed {
+    border-color: var(--accent);
+  }
+  .section-map-lock {
+    font-size: 0.8rem;
+  }
+  .section-map-emoji {
+    display: none;
+  }
+  .section-map-item.unlocked .section-map-emoji {
+    display: block;
+  }
+  .section-map-item.unlocked .section-map-lock {
+    display: none;
+  }
+
+  /* ── Section Panel ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--accent-light);
+  }
+
+  /* ── Section Quiz Status ── */
+  .section-quiz-status {
+    text-align: center;
+    padding: 12px;
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    margin-top: 1rem;
+  }
+  .section-quiz-score {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+  }
+
+  /* ── Section Navigation ── */
+  .section-nav {
+    padding-top: 1rem;
+  }
+
+  /* ── Quiz Styles ── */
+  .bible-quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 12px;
+  }
+  .bible-quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .bible-quiz-option {
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: right;
+  }
+  .bible-quiz-option:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .bible-quiz-option.correct {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .bible-quiz-option.wrong {
+    background: var(--rose-light);
+    border-color: var(--rose);
+    color: var(--rose);
+  }
+  .bible-quiz-option:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  /* ── TOC Card ── */
+  .toc-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 2.5rem;
+  }
+  .toc-card nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .toc-card nav a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: color 0.2s;
+    display: block;
+  }
+  .toc-card nav a:hover {
+    color: var(--accent);
+  }
+  .toc-card nav a.toc-h3 {
+    padding-right: 1.25rem;
+    font-size: 0.85rem;
+  }
+</style>
+
+<style is:global>
+  .article-content h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 2.5rem 0 1rem;
+    color: var(--text);
+  }
+  .article-content h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 2rem 0 0.75rem;
+    color: var(--text-2);
+  }
+  .article-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.9;
+    color: var(--text-2);
+  }
+  .article-content ul, .article-content ol {
+    margin: 1rem 0 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .article-content li {
+    line-height: 1.8;
+    color: var(--text-2);
+  }
+  .article-content strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+  .article-content blockquote {
+    background: var(--accent-light);
+    border-right: 4px solid var(--accent);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-sm);
+    margin: 1.5rem 0;
+    color: var(--text-2);
+    font-style: normal;
+  }
+  .article-content code {
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    color: var(--accent-dark);
+  }
+  .article-content pre {
+    background: var(--text);
+    color: #e2e8f0;
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    direction: ltr;
+    text-align: left;
+  }
+  .article-content pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: 0.85rem;
+  }
+  .article-content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+  .article-content a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+const tools = [
+  {
+    icon: '💬', name: 'ChatGPT', desc: 'محادثة ذكية وكتابة ومساعدة في كل شيء', featured: true,
+    badge: 'الأكثر شعبية', btnText: 'جرّبه مجاناً', url: 'https://chat.openai.com',
+  },
+  {
+    icon: '🤖', name: 'Claude', desc: 'تحليل نصوص طويلة وبرمجة وكتابة احترافية',
+    btnText: 'جرّبه', url: 'https://claude.ai',
+  },
+  {
+    icon: '🎨', name: 'Midjourney', desc: 'توليد صور فنية مذهلة بالذكاء الاصطناعي',
+    btnText: 'جرّبه', url: 'https://midjourney.com',
+  },
+  {
+    icon: '🌟', name: 'Gemini', desc: 'نموذج Google المتقدم متعدد الوسائط',
+    btnText: 'جرّبه مجاناً', url: 'https://gemini.google.com',
+  },
+  {
+    icon: '🎵', name: 'Suno AI', desc: 'أنشئ موسيقى وأغاني كاملة بالذكاء الاصطناعي',
+    btnText: 'جرّبه', url: 'https://suno.ai',
+  },
+  {
+    icon: '📹', name: 'Runway', desc: 'تحرير وتوليد فيديو بالذكاء الاصطناعي',
+    btnText: 'جرّبه', url: 'https://runwayml.com',
+  },
+  {
+    icon: '✍️', name: 'Notion AI', desc: 'إدارة مشاريع وكتابة ذكية داخل Notion',
+    btnText: 'جرّبه', url: 'https://notion.so',
+  },
+  {
+    icon: '🔊', name: 'ElevenLabs', desc: 'تحويل النص إلى كلام طبيعي بأصوات متعددة',
+    btnText: 'جرّبه', url: 'https://elevenlabs.io',
+  },
+];
+---
+
+<section class="section section-alt" id="tools">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">🛠️ أدوات مختارة</div>
+      <h2 class="section-title">دليل أدوات الذكاء الاصطناعي</h2>
+      <p class="section-sub">مجموعة أدوات AI مختارة ومراجعة لتساعدك في عملك</p>
+    </div>
+
+    <div class="tools-grid">
+      {tools.map((tool) => (
+        <div class={`tool-card ${tool.featured ? 'featured' : ''}`}>
+          {tool.badge && <div class="tool-badge">{tool.badge}</div>}
+          <div class="tool-icon">{tool.icon}</div>
+          <h3>{tool.name}</h3>
+          <p>{tool.desc}</p>
+          <a href={tool.url} target="_blank" rel="noopener" class={tool.featured ? 'tool-btn' : 'tool-btn-outline'}>
+            {tool.btnText}
+          </a>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

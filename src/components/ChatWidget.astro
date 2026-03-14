@@ -1,0 +1,83 @@
+<div class="ai-chat-widget" id="chatWidget">
+  <div class="chat-panel hidden" id="chatPanel">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-name">عَقول AI</div>
+          <div class="chat-status">متصل الآن</div>
+        </div>
+      </div>
+      <button class="chat-close" id="chatClose">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg ai-msg">
+        <div class="msg-bubble">أهلاً! أنا مساعد عَقول 🤖 كيف أقدر أساعدك اليوم؟</div>
+        <span class="msg-time">الآن</span>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chatInput" placeholder="اكتب رسالتك...">
+      <button class="chat-send" id="chatSend">➤</button>
+    </div>
+  </div>
+  <div class="chat-bubble" id="chatBubble">
+    🤖
+    <div class="chat-bubble-pulse"></div>
+  </div>
+</div>
+
+<script>
+  const chatBubble = document.getElementById('chatBubble');
+  const chatPanel = document.getElementById('chatPanel');
+  const chatClose = document.getElementById('chatClose');
+  const chatInput = document.getElementById('chatInput') as HTMLInputElement;
+  const chatSend = document.getElementById('chatSend');
+  const chatMessages = document.getElementById('chatMessages');
+
+  chatBubble?.addEventListener('click', () => {
+    chatPanel?.classList.toggle('hidden');
+    if (!chatPanel?.classList.contains('hidden')) {
+      chatInput?.focus();
+    }
+  });
+
+  chatClose?.addEventListener('click', () => {
+    chatPanel?.classList.add('hidden');
+  });
+
+  const botReplies = [
+    'شكراً على سؤالك! يمكنك استكشاف قسم الموسوعة للمزيد من المعلومات 📖',
+    'سؤال رائع! أنصحك بمراجعة قسم النصائح والحيل لمزيد من التفاصيل 🧠',
+    'مرحباً! جرّب مُحسّن البرومبت الخاص بنا للحصول على نتائج أفضل ✨',
+    'أهلاً! يمكنك طرح سؤالك بالتفصيل في المنتدى وسنرد عليك بشكل أشمل 💬',
+    'نصيحة سريعة: تصفّح قسم الأدوات لاكتشاف أدوات AI مجانية مفيدة 🛠️',
+  ];
+
+  function sendMessage() {
+    const text = chatInput?.value.trim();
+    if (!text) return;
+
+    const userMsg = document.createElement('div');
+    userMsg.className = 'chat-msg user-msg';
+    userMsg.innerHTML = `<div class="msg-bubble">${text}</div><span class="msg-time">الآن</span>`;
+    chatMessages?.appendChild(userMsg);
+    chatInput.value = '';
+
+    setTimeout(() => {
+      const reply = botReplies[Math.floor(Math.random() * botReplies.length)];
+      const aiMsg = document.createElement('div');
+      aiMsg.className = 'chat-msg ai-msg';
+      aiMsg.innerHTML = `<div class="msg-bubble">${reply}</div><span class="msg-time">الآن</span>`;
+      chatMessages?.appendChild(aiMsg);
+      chatMessages?.scrollTo(0, chatMessages.scrollHeight);
+    }, 800);
+
+    chatMessages?.scrollTo(0, chatMessages.scrollHeight);
+  }
+
+  chatSend?.addEventListener('click', sendMessage);
+  chatInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+</script>

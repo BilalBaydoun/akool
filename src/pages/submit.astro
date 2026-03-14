@@ -1,0 +1,317 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+---
+
+<BaseLayout title="شارك محتوى — عَقول">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:700px;">
+      <div class="section-header">
+        <div class="section-tag">📤 شارك معنا</div>
+        <h2 class="section-title">شارك محتوى مع المجتمع</h2>
+        <p class="section-sub">شارك مقالاً أو فيديو يوتيوب — دانة (وكيل AI) ستراجعه وتقرر إذا يستحق النشر</p>
+      </div>
+
+      <div class="enhancer-card">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;">📎 أضف رابطاً</h3>
+
+        <label class="enhancer-label">نوع المحتوى</label>
+        <div style="display:flex;gap:12px;margin-bottom:16px;">
+          <button class="filter-btn active" id="typeArticle" data-type="article">📄 مقال</button>
+          <button class="filter-btn" id="typeYoutube" data-type="youtube">🎥 فيديو يوتيوب</button>
+        </div>
+
+        <label class="enhancer-label">الرابط (URL)</label>
+        <input type="url" id="submitUrl" class="form-input" placeholder="https://..." style="margin-bottom:12px;" dir="ltr">
+
+        <label class="enhancer-label">العنوان</label>
+        <input type="text" id="submitTitle" class="form-input" placeholder="عنوان المقال أو الفيديو" style="margin-bottom:12px;">
+
+        <label class="enhancer-label">اسمك</label>
+        <input type="text" id="submitName" class="form-input" placeholder="اسمك (لنذكرك كمساهم)" style="margin-bottom:12px;">
+
+        <label class="enhancer-label">بريدك الإلكتروني (اختياري — لإشعارك بالنتيجة)</label>
+        <input type="email" id="submitEmail" class="form-input" placeholder="you@example.com" dir="ltr" style="margin-bottom:12px;">
+
+        <label class="enhancer-label">لماذا هذا المحتوى مفيد؟ (اختياري)</label>
+        <textarea id="submitDesc" class="form-textarea" rows="2" placeholder="اشرح باختصار..."></textarea>
+
+        <button id="submitBtn" class="btn-enhance" style="border-radius:var(--radius);margin-top:8px;">
+          <span id="submitBtnText">📤 إرسال لمراجعة دانة</span>
+        </button>
+
+        <!-- Review Result -->
+        <div id="reviewResult" class="hidden" style="margin-top:1.5rem;"></div>
+
+        <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+          <p style="font-size:0.85rem;color:var(--text-muted);line-height:1.7;">
+            🤖 <strong>كيف يعمل؟</strong><br>
+            1. تُرسل الرابط والعنوان<br>
+            2. <strong>دانة</strong> (وكيل AI) تراجع المحتوى وتقيّمه من 10<br>
+            3. إذا حصل على 7/10 أو أكثر → يُنشر تلقائياً مع ذكر اسمك كمساهم<br>
+            4. إذا أدخلت بريدك → ستصلك رسالة بالنتيجة
+          </p>
+        </div>
+      </div>
+
+      <!-- Previous Submissions -->
+      <div id="prevSubmissions" style="margin-top:2rem;">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;">📋 المشاركات السابقة</h3>
+        <div id="submissionsList"></div>
+        <div id="noSubmissions" style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.9rem;">
+          لا توجد مشاركات سابقة
+        </div>
+      </div>
+
+      <!-- Approved Community Content -->
+      <div style="margin-top:2rem;">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1rem;">✅ محتوى المجتمع المنشور</h3>
+        <div id="approvedContent"></div>
+        <div id="noApproved" style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.9rem;">
+          لا يوجد محتوى منشور من المجتمع بعد — كن أول من يساهم!
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .review-card {
+    padding: 20px;
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+  }
+  .review-approved {
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent);
+  }
+  .review-rejected {
+    background: var(--rose-light);
+    border: 1.5px solid var(--rose);
+  }
+  .review-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 1.1rem;
+    font-weight: 900;
+    padding: 4px 14px;
+    border-radius: 50px;
+    background: var(--surface);
+  }
+  .submission-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+  }
+  .submission-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 50px;
+    flex-shrink: 0;
+  }
+  .status-approved { background: var(--accent-light); color: var(--accent); }
+  .status-rejected { background: var(--rose-light); color: var(--rose); }
+  .status-pending { background: #FEF9C3; color: #854D0E; }
+</style>
+
+<script>
+  let selectedType = 'article';
+  const STORAGE_KEY = 'akool-submissions';
+
+  interface Submission {
+    id: string;
+    type: string;
+    url: string;
+    title: string;
+    name: string;
+    email: string;
+    description: string;
+    date: string;
+    status: 'approved' | 'rejected' | 'pending';
+    score: number;
+    reason: string;
+    summary: string;
+    reviewer: string;
+  }
+
+  // Type toggle
+  document.querySelectorAll('[data-type]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-type]').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedType = (btn as HTMLElement).dataset.type || 'article';
+    });
+  });
+
+  function getSubmissions(): Submission[] {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function saveSubmission(s: Submission) {
+    const subs = getSubmissions();
+    subs.unshift(s);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(subs.slice(0, 50)));
+  }
+
+  // Submit
+  document.getElementById('submitBtn')?.addEventListener('click', async () => {
+    const url = (document.getElementById('submitUrl') as HTMLInputElement).value.trim();
+    const title = (document.getElementById('submitTitle') as HTMLInputElement).value.trim();
+    const name = (document.getElementById('submitName') as HTMLInputElement).value.trim();
+    const email = (document.getElementById('submitEmail') as HTMLInputElement).value.trim();
+    const desc = (document.getElementById('submitDesc') as HTMLTextAreaElement).value.trim();
+    const btn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const btnText = document.getElementById('submitBtnText') as HTMLElement;
+    const resultDiv = document.getElementById('reviewResult') as HTMLElement;
+
+    if (!url || !title) {
+      showResult(resultDiv, false, 'يرجى إدخال الرابط والعنوان', 0);
+      return;
+    }
+    if (!name) {
+      showResult(resultDiv, false, 'يرجى إدخال اسمك', 0);
+      return;
+    }
+
+    btn.disabled = true;
+    btnText.textContent = '🔍 دانة تراجع المحتوى...';
+
+    let review: any;
+
+    try {
+      const res = await fetch('/api/review-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title, url, type: selectedType, description: desc,
+          userName: name, userEmail: email,
+        }),
+      });
+      review = await res.json();
+    } catch {
+      // Fallback: basic check
+      const aiWords = /ai|ذكاء|اصطناعي|gpt|claude|gemini|llm|prompt|نموذج/i;
+      review = (aiWords.test(title) || aiWords.test(desc))
+        ? { approved: true, score: 7, reason: 'المحتوى يبدو متعلقاً بالـ AI', summary: title, category: 'tips', reviewer: 'دانة (مراجعة أساسية)' }
+        : { approved: false, score: 4, reason: 'المحتوى لا يبدو متعلقاً بالذكاء الاصطناعي', summary: title, category: 'tips', reviewer: 'دانة (مراجعة أساسية)' };
+    }
+
+    btn.disabled = false;
+    btnText.textContent = '📤 إرسال لمراجعة دانة';
+
+    // Save submission
+    const submission: Submission = {
+      id: Date.now().toString(),
+      type: selectedType,
+      url, title, name, email, description: desc,
+      date: new Date().toISOString(),
+      status: review.approved ? 'approved' : 'rejected',
+      score: review.score || 0,
+      reason: review.reason || '',
+      summary: review.summary || '',
+      reviewer: review.reviewer || 'دانة',
+    };
+    saveSubmission(submission);
+
+    // Show result
+    showResult(resultDiv, review.approved, review.reason, review.score);
+
+    // Add notification
+    if (review.approved) {
+      if (typeof window.__addNotification === 'function') {
+        window.__addNotification('✅ دانة وافقت على مشاركتك "' + title + '"', '/submit');
+      }
+    } else {
+      if (typeof window.__addNotification === 'function') {
+        window.__addNotification('❌ دانة رفضت مشاركتك: ' + review.reason, '/submit');
+      }
+    }
+
+    // Clear form
+    (document.getElementById('submitUrl') as HTMLInputElement).value = '';
+    (document.getElementById('submitTitle') as HTMLInputElement).value = '';
+    (document.getElementById('submitDesc') as HTMLTextAreaElement).value = '';
+
+    renderSubmissions();
+  });
+
+  function showResult(div: HTMLElement, approved: boolean, reason: string, score: number) {
+    div.classList.remove('hidden');
+    div.innerHTML = `
+      <div class="review-card ${approved ? 'review-approved' : 'review-rejected'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-size:1.1rem;font-weight:800;">${approved ? '✅ تمت الموافقة!' : '❌ لم تتم الموافقة'}</span>
+          ${score > 0 ? `<span class="review-score">⭐ ${score}/10</span>` : ''}
+        </div>
+        <p style="font-size:0.9rem;line-height:1.7;">
+          <strong>👩‍⚖️ دانة:</strong> ${reason}
+        </p>
+        ${approved ? '<p style="font-size:0.82rem;color:var(--accent);margin-top:8px;font-weight:600;">سيتم نشر المحتوى على المنصة مع ذكر اسمك كمساهم 💚</p>' : ''}
+      </div>
+    `;
+  }
+
+  function renderSubmissions() {
+    const subs = getSubmissions();
+    const list = document.getElementById('submissionsList') as HTMLElement;
+    const noSubs = document.getElementById('noSubmissions') as HTMLElement;
+    const approvedDiv = document.getElementById('approvedContent') as HTMLElement;
+    const noApproved = document.getElementById('noApproved') as HTMLElement;
+
+    const approved = subs.filter(s => s.status === 'approved');
+    const all = subs;
+
+    // My submissions
+    if (all.length === 0) {
+      noSubs.style.display = 'block';
+      list.innerHTML = '';
+    } else {
+      noSubs.style.display = 'none';
+      list.innerHTML = all.slice(0, 10).map(s => `
+        <div class="submission-card">
+          <span style="font-size:1.2rem;">${s.type === 'youtube' ? '🎥' : '📄'}</span>
+          <div style="flex:1;min-width:0;">
+            <a href="${s.url}" target="_blank" rel="noopener" style="font-size:0.9rem;font-weight:700;color:var(--text);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.title}</a>
+            <div style="font-size:0.78rem;color:var(--text-muted);">${new Date(s.date).toLocaleDateString('ar-EG')} • ⭐ ${s.score}/10</div>
+          </div>
+          <span class="submission-status status-${s.status}">${s.status === 'approved' ? '✅ منشور' : '❌ مرفوض'}</span>
+        </div>
+      `).join('');
+    }
+
+    // Approved community content
+    if (approved.length === 0) {
+      noApproved.style.display = 'block';
+      approvedDiv.innerHTML = '';
+    } else {
+      noApproved.style.display = 'none';
+      approvedDiv.innerHTML = approved.map(s => `
+        <div class="submission-card">
+          <span style="font-size:1.2rem;">${s.type === 'youtube' ? '🎥' : '📄'}</span>
+          <div style="flex:1;min-width:0;">
+            <a href="${s.url}" target="_blank" rel="noopener" style="font-size:0.9rem;font-weight:700;color:var(--text);">${s.title}</a>
+            <div style="font-size:0.78rem;color:var(--text-muted);">مساهمة ${s.name} • ⭐ ${s.score}/10</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  renderSubmissions();
+</script>

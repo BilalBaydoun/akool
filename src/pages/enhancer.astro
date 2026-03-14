@@ -1,0 +1,253 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+---
+
+<BaseLayout title="مُحسّن البرومبت — عَقول" description="حسّن برومبتاتك وشاركها مع المجتمع العربي">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">✨ أداة مجانية</div>
+        <h2 class="section-title">مُحسّن البرومبت</h2>
+        <p class="section-sub">حسّن برومبتك وشاركه مع المجتمع — قيّم برومبتات الآخرين واستفد منها</p>
+      </div>
+
+      <!-- Enhancer Tool -->
+      <div class="enhancer-card" style="margin-bottom:3rem;">
+        <div class="enhancer-top">
+          <div>
+            <label class="enhancer-label">✏️ اكتب البرومبت</label>
+            <textarea class="enhancer-input" id="pagePromptInput" rows="5" placeholder="اكتب برومبتك هنا..." maxlength="2000"></textarea>
+            <div class="enhancer-meta">
+              <span id="pageCharCount">0 / 2000</span>
+            </div>
+          </div>
+          <div class="enhancer-settings">
+            <label class="enhancer-label">🎯 نوع المهمة</label>
+            <select class="enhancer-select" id="pageTaskType">
+              <option value="general">عام</option>
+              <option value="writing">كتابة وتحرير</option>
+              <option value="coding">برمجة وتطوير</option>
+              <option value="creative">إبداعي وفني</option>
+              <option value="analysis">تحليل وبحث</option>
+              <option value="marketing">تسويق ومحتوى</option>
+            </select>
+
+            <label class="enhancer-label" style="margin-top:12px;">🌐 اللغة</label>
+            <select class="enhancer-select" id="pageLangSelect">
+              <option value="ar">العربية</option>
+              <option value="en">الإنجليزية</option>
+              <option value="both">ثنائي اللغة</option>
+            </select>
+
+            <div style="margin-top:16px;">
+              <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;color:var(--text-2);">
+                <input type="checkbox" id="sharePromptCheck">
+                📤 شارك البرومبت المحسّن مع المجتمع
+              </label>
+            </div>
+
+            <button class="btn-enhance" id="pageEnhanceBtn" style="margin-top:auto;">
+              <span>✨ حسّن البرومبت</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="pageResult" class="hidden"></div>
+      </div>
+
+      <!-- Community Prompts -->
+      <div class="section-header">
+        <div class="section-tag">👥 من المجتمع</div>
+        <h2 class="section-title">برومبتات المجتمع</h2>
+        <p class="section-sub">برومبتات شاركها مستخدمون آخرون — قيّمها وانسخها</p>
+      </div>
+
+      <div class="library-grid" id="communityPrompts">
+        <!-- Populated by JS or static examples -->
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<script>
+  // Prompt enhancer logic (same as homepage)
+  const input = document.getElementById('pagePromptInput') as HTMLTextAreaElement;
+  const charCount = document.getElementById('pageCharCount') as HTMLElement;
+  const enhanceBtn = document.getElementById('pageEnhanceBtn') as HTMLButtonElement;
+  const resultDiv = document.getElementById('pageResult') as HTMLElement;
+  const taskType = document.getElementById('pageTaskType') as HTMLSelectElement;
+  const langSelect = document.getElementById('pageLangSelect') as HTMLSelectElement;
+  const shareCheck = document.getElementById('sharePromptCheck') as HTMLInputElement;
+
+  input?.addEventListener('input', () => {
+    charCount.textContent = `${input.value.length} / 2000`;
+  });
+
+  interface Templates {
+    [key: string]: { role: string; structure: string };
+  }
+
+  const templates: Templates = {
+    general: { role: 'أنت مساعد ذكي ومتخصص', structure: 'قدّم إجابة واضحة ومنظمة مع أمثلة عملية' },
+    writing: { role: 'أنت كاتب محتوى محترف ومتخصص في الكتابة الإبداعية', structure: 'اكتب بأسلوب جذاب مع مقدمة قوية وعناوين فرعية وخاتمة' },
+    coding: { role: 'أنت مطور برمجيات خبير ومهندس برمجيات أول', structure: 'قدّم كود نظيف ومعلّق مع شرح كل خطوة وأفضل الممارسات' },
+    creative: { role: 'أنت فنان ومصمم إبداعي متميز', structure: 'كن إبداعياً ومبتكراً مع وصف تفصيلي للعناصر البصرية' },
+    analysis: { role: 'أنت محلل بيانات وباحث متخصص', structure: 'قدّم تحليلاً منهجياً مع بيانات وإحصائيات' },
+    marketing: { role: 'أنت خبير تسويق رقمي ومتخصص في صناعة المحتوى', structure: 'ركّز على الجمهور المستهدف مع دعوات واضحة لاتخاذ إجراء' },
+  };
+
+  function enhance(text: string, task: string, lang: string): string {
+    const t = templates[task] || templates.general;
+    const langNote = lang === 'ar' ? 'أجب باللغة العربية الفصحى.' : lang === 'en' ? 'Answer in English.' : 'أجب باللغتين العربية والإنجليزية.';
+    return `## الدور\n${t.role}.\n\n## المهمة\n${text}\n\n## التعليمات\n- ${t.structure}.\n- كن دقيقاً وشاملاً في إجابتك.\n- استخدم أمثلة عملية وواقعية.\n- نظّم الإجابة بعناوين واضحة ونقاط مرتّبة.\n\n## اللغة\n${langNote}\n\n## الشكل المطلوب\nقدّم الإجابة بتنسيق واضح ومنظم.`;
+  }
+
+  enhanceBtn?.addEventListener('click', () => {
+    const text = input.value.trim();
+    if (!text) { input.focus(); return; }
+
+    const enhanced = enhance(text, taskType.value, langSelect.value);
+    const score = Math.min(95, 50 + text.length / 10);
+
+    resultDiv.classList.remove('hidden');
+    resultDiv.innerHTML = `
+      <div class="enhancer-result">
+        <div class="result-tabs">
+          <button class="result-tab active" data-tab="enhanced">المحسّن</button>
+          <button class="result-tab" data-tab="original">الأصلي</button>
+        </div>
+        <div class="result-panel" id="pe-enhanced">
+          <div class="result-box">
+            <div class="result-label">
+              <span>✨ البرومبت المحسّن</span>
+              <button class="copy-btn" id="peCopy">📋 نسخ</button>
+            </div>
+            <div class="result-text">${enhanced}</div>
+          </div>
+          <div class="improvement-score">
+            <span class="score-label">نسبة التحسين</span>
+            <div class="score-bar"><div class="score-fill" style="width:${score}%"></div></div>
+            <span class="score-num">${Math.round(score)}%</span>
+          </div>
+        </div>
+        <div class="result-panel hidden" id="pe-original">
+          <div class="result-box">
+            <div class="result-label"><span>📝 الأصلي</span></div>
+            <div class="result-text">${text}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Tab switching
+    resultDiv.querySelectorAll('.result-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        resultDiv.querySelectorAll('.result-tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const name = (tab as HTMLElement).dataset.tab;
+        document.getElementById('pe-enhanced')?.classList.toggle('hidden', name !== 'enhanced');
+        document.getElementById('pe-original')?.classList.toggle('hidden', name !== 'original');
+      });
+    });
+
+    // Copy
+    document.getElementById('peCopy')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(enhanced);
+      const btn = document.getElementById('peCopy') as HTMLElement;
+      btn.textContent = '✅ تم!';
+      setTimeout(() => { btn.textContent = '📋 نسخ'; }, 2000);
+    });
+
+    // Save to community if checked
+    if (shareCheck?.checked) {
+      const shared = JSON.parse(localStorage.getItem('akool-shared-prompts') || '[]');
+      shared.unshift({
+        original: text,
+        enhanced,
+        task: taskType.value,
+        date: new Date().toISOString(),
+        rating: 0,
+        votes: 0,
+      });
+      localStorage.setItem('akool-shared-prompts', JSON.stringify(shared.slice(0, 50)));
+      loadCommunityPrompts();
+    }
+
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  // Community prompts
+  function loadCommunityPrompts() {
+    const grid = document.getElementById('communityPrompts') as HTMLElement;
+    const shared = JSON.parse(localStorage.getItem('akool-shared-prompts') || '[]');
+
+    const taskLabels: Record<string, string> = {
+      general: 'عام', writing: 'كتابة', coding: 'برمجة',
+      creative: 'إبداعي', analysis: 'تحليل', marketing: 'تسويق',
+    };
+
+    // Demo prompts + saved
+    const demos = [
+      { original: 'اكتب مقال عن التسويق بالذكاء الاصطناعي', task: 'marketing', rating: 4.5, votes: 12, date: '2026-03-13' },
+      { original: 'صمم logo لشركة تقنية ناشئة', task: 'creative', rating: 4.2, votes: 8, date: '2026-03-12' },
+      { original: 'اكتب API بـ Node.js لإدارة المهام', task: 'coding', rating: 4.8, votes: 15, date: '2026-03-11' },
+    ];
+
+    const all = [...shared, ...demos].slice(0, 12);
+
+    if (all.length === 0) {
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);grid-column:1/-1;">لا توجد برومبتات مشتركة بعد. كن أول من يشارك!</p>';
+      return;
+    }
+
+    grid.innerHTML = all.map((p: any, i: number) => `
+      <div class="lib-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+          <span class="blog-tag">${taskLabels[p.task] || 'عام'}</span>
+          <span style="font-size:0.78rem;color:var(--text-light);">⭐ ${p.rating || '—'} (${p.votes || 0})</span>
+        </div>
+        <p style="font-size:0.88rem;color:var(--text-2);margin-bottom:1rem;line-height:1.7;">${p.original}</p>
+        <div style="display:flex;gap:8px;">
+          <button class="blog-read-btn community-copy" data-idx="${i}" style="border:none;cursor:pointer;">📋 نسخ</button>
+          <button class="blog-read-btn community-rate" data-idx="${i}" style="border:none;cursor:pointer;">⭐ قيّم</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Copy handlers
+    grid.querySelectorAll('.community-copy').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt((btn as HTMLElement).dataset.idx || '0');
+        const prompt = all[idx];
+        navigator.clipboard.writeText(prompt.original);
+        btn.textContent = '✅ تم!';
+        setTimeout(() => { btn.textContent = '📋 نسخ'; }, 2000);
+      });
+    });
+
+    // Rate handlers
+    grid.querySelectorAll('.community-rate').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt((btn as HTMLElement).dataset.idx || '0');
+        if (idx < shared.length) {
+          shared[idx].rating = Math.min(5, (shared[idx].rating || 0) + 0.5);
+          shared[idx].votes = (shared[idx].votes || 0) + 1;
+          localStorage.setItem('akool-shared-prompts', JSON.stringify(shared));
+          loadCommunityPrompts();
+        }
+      });
+    });
+  }
+
+  loadCommunityPrompts();
+</script>

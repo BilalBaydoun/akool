@@ -1,0 +1,233 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+---
+
+<BaseLayout title="لوحة المتصدرين — عَقول" description="أكثر المساهمين نشاطاً في مجتمع عَقول">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:1000px;">
+      <div class="section-header">
+        <h2 class="section-title">لوحة المتصدرين</h2>
+        <p class="section-sub">أكثر الأعضاء نشاطاً ومساهمةً في مجتمع عَقول</p>
+      </div>
+
+      <div class="leaderboard-grid">
+
+        <!-- Most Comments -->
+        <div class="enhancer-card">
+          <h3 class="lb-category-title">🏆 أكثر المعلقين</h3>
+          <p class="lb-category-desc">الأعضاء الأكثر تعليقاً على المقالات</p>
+          <div id="lb-comments" class="lb-list"></div>
+        </div>
+
+        <!-- Most Submissions -->
+        <div class="enhancer-card">
+          <h3 class="lb-category-title">📤 أكثر المساهمين</h3>
+          <p class="lb-category-desc">الأعضاء الأكثر إرسالاً للمحتوى</p>
+          <div id="lb-submissions" class="lb-list"></div>
+        </div>
+
+        <!-- Highest Rated -->
+        <div class="enhancer-card">
+          <h3 class="lb-category-title">⭐ أعلى تقييم</h3>
+          <p class="lb-category-desc">المساهمات الأعلى تقييماً من المجتمع</p>
+          <div id="lb-rated" class="lb-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+
+  <style>
+    .leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .lb-category-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+    .lb-category-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+    }
+    .lb-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .lb-entry {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      background: var(--card-bg, var(--surface));
+      border: 1px solid var(--border);
+      transition: transform 0.2s;
+    }
+    .lb-entry:hover {
+      transform: translateY(-2px);
+    }
+    .lb-rank {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      background: var(--border);
+      color: var(--text);
+    }
+    .lb-rank.gold {
+      background: linear-gradient(135deg, #f6d365, #fda085);
+      color: #fff;
+    }
+    .lb-rank.silver {
+      background: linear-gradient(135deg, #a8c0ff, #3f2b96);
+      color: #fff;
+    }
+    .lb-rank.bronze {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: #fff;
+    }
+    .lb-name {
+      flex: 1;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .lb-score {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+    .lb-badge {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+  </style>
+
+  <script is:inline>
+    (function() {
+      const placeholderComments = [
+        { name: 'أحمد الخالدي', count: 47 },
+        { name: 'نورة السعيد', count: 38 },
+        { name: 'محمد الأنصاري', count: 31 },
+        { name: 'فاطمة الزهراء', count: 24 },
+        { name: 'عبدالله العمري', count: 19 },
+      ];
+      const placeholderSubmissions = [
+        { name: 'سارة المطيري', count: 22 },
+        { name: 'خالد الدوسري', count: 18 },
+        { name: 'ريم القحطاني', count: 15 },
+        { name: 'يوسف الحربي', count: 11 },
+        { name: 'هند الشمري', count: 8 },
+      ];
+      const placeholderRated = [
+        { name: 'عمر الفيصل', score: 4.9 },
+        { name: 'لينا الراشد', score: 4.8 },
+        { name: 'مازن العتيبي', score: 4.7 },
+        { name: 'دانة الحمد', score: 4.5 },
+        { name: 'طارق الجابري', score: 4.3 },
+      ];
+
+      const badges = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
+      const rankClasses = ['gold', 'silver', 'bronze', '', ''];
+
+      function getRealComments() {
+        var commenters = {};
+        for (var i = 0; i < localStorage.length; i++) {
+          var key = localStorage.key(i);
+          if (key && key.startsWith('akool-comments-')) {
+            try {
+              var comments = JSON.parse(localStorage.getItem(key));
+              if (Array.isArray(comments)) {
+                comments.forEach(function(c) {
+                  var name = c.name || c.author || 'مجهول';
+                  commenters[name] = (commenters[name] || 0) + 1;
+                });
+              }
+            } catch(e) {}
+          }
+        }
+        var arr = Object.entries(commenters).map(function(e) { return { name: e[0], count: e[1] }; });
+        arr.sort(function(a, b) { return b.count - a.count; });
+        return arr.slice(0, 5);
+      }
+
+      function getRealSubmissions() {
+        try {
+          var subs = JSON.parse(localStorage.getItem('akool-submissions'));
+          if (Array.isArray(subs)) {
+            var submitters = {};
+            subs.forEach(function(s) {
+              var name = s.name || s.author || 'مجهول';
+              submitters[name] = (submitters[name] || 0) + 1;
+            });
+            var arr = Object.entries(submitters).map(function(e) { return { name: e[0], count: e[1] }; });
+            arr.sort(function(a, b) { return b.count - a.count; });
+            return arr.slice(0, 5);
+          }
+        } catch(e) {}
+        return [];
+      }
+
+      function getRealRated() {
+        try {
+          var subs = JSON.parse(localStorage.getItem('akool-submissions'));
+          if (Array.isArray(subs)) {
+            var rated = subs.filter(function(s) { return s.rating || s.score; })
+              .map(function(s) { return { name: s.name || s.title || 'مجهول', score: s.rating || s.score }; });
+            rated.sort(function(a, b) { return b.score - a.score; });
+            return rated.slice(0, 5);
+          }
+        } catch(e) {}
+        return [];
+      }
+
+      function renderList(containerId, data, valueKey, suffix) {
+        var container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        data.forEach(function(item, i) {
+          var val = item[valueKey];
+          var displayVal = typeof val === 'number' && val % 1 !== 0 ? val.toFixed(1) : val;
+          var entry = document.createElement('div');
+          entry.className = 'lb-entry';
+          entry.innerHTML =
+            '<span class="lb-rank ' + rankClasses[i] + '">' + (i + 1) + '</span>' +
+            '<span class="lb-name">' + item.name + '</span>' +
+            '<span class="lb-score">' + displayVal + (suffix || '') + '</span>' +
+            '<span class="lb-badge">' + badges[i] + '</span>';
+          container.appendChild(entry);
+        });
+      }
+
+      var comments = getRealComments();
+      var submissions = getRealSubmissions();
+      var rated = getRealRated();
+
+      renderList('lb-comments', comments.length > 0 ? comments : placeholderComments, 'count', ' تعليق');
+      renderList('lb-submissions', submissions.length > 0 ? submissions : placeholderSubmissions, 'count', ' مساهمة');
+      renderList('lb-rated', rated.length > 0 ? rated : placeholderRated, 'score', ' ⭐');
+    })();
+  </script>
+</BaseLayout>

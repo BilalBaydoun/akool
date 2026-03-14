@@ -1,0 +1,105 @@
+name: عَقول AI Agents
+
+on:
+  schedule:
+    # CEO runs daily at 9 AM UTC (after other agents)
+    - cron: '0 9 * * *'
+    # Content writer (Noura) runs daily at 8 AM UTC
+    - cron: '0 8 * * *'
+    # News curator (Basel) runs daily at 6 AM UTC
+    - cron: '0 6 * * *'
+    # YouTube scout (Reem) runs daily at 7 AM UTC
+    - cron: '0 7 * * *'
+    # Weekly digest (Tarek) runs Sunday at 10 AM UTC
+    - cron: '0 10 * * 0'
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: 'Which agent to run'
+        required: true
+        type: choice
+        options:
+          - all
+          - ceo
+          - noura
+          - basel
+          - reem
+          - tarek
+          - developer
+
+permissions:
+  contents: write
+
+jobs:
+  run-agents:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install tsx
+        run: npm install -g tsx
+
+      # Determine which agent to run based on cron or manual input
+      - name: Run Basel (News) — 6 AM UTC
+        if: github.event.schedule == '0 6 * * *' || github.event.inputs.agent == 'basel' || github.event.inputs.agent == 'all'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: tsx agents/basel-news.ts
+
+      - name: Run Reem (YouTube Scout) — 7 AM UTC
+        if: github.event.schedule == '0 7 * * *' || github.event.inputs.agent == 'reem' || github.event.inputs.agent == 'all'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: tsx agents/reem-youtube.ts
+
+      - name: Run Noura (Content) — 8 AM UTC
+        if: github.event.schedule == '0 8 * * *' || github.event.inputs.agent == 'noura' || github.event.inputs.agent == 'all'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: tsx agents/noura-writer.ts
+
+      - name: Run Tarek (Weekly Digest) — Sunday 10 AM
+        if: github.event.schedule == '0 10 * * 0' || github.event.inputs.agent == 'tarek' || github.event.inputs.agent == 'all'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: tsx agents/tarek-digest.ts
+
+      - name: Run Developer (Platform Check) — 9 AM UTC
+        if: github.event.schedule == '0 9 * * *' || github.event.inputs.agent == 'developer' || github.event.inputs.agent == 'all'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: tsx agents/akool-developer.ts
+
+      - name: Run CEO (عَقول) — 9 AM UTC
+        if: github.event.schedule == '0 9 * * *' || github.event.inputs.agent == 'ceo' || github.event.inputs.agent == 'all'
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+        run: tsx agents/ceo-akool.ts
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "عَقول AI"
+          git config user.email "akool-ai@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🤖 تحديث تلقائي بواسطة وكلاء عَقول AI
+
+          - وكلاء نشطون: باسل (أخبار)، ريم (يوتيوب)، نوره (محتوى)، عَقول (إشراف)
+          - التاريخ: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi

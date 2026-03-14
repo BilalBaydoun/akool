@@ -1,0 +1,33 @@
+---
+const newsItems = [
+  { text: '🚀 OpenAI تُطلق GPT-5 بقدرات متقدمة في الاستنتاج', url: '/articles/gpt5-launch' },
+  { text: '🧠 Google DeepMind تكشف عن نموذج Gemini 2.0 الجديد', url: '/articles/gemini-2-review' },
+  { text: '📱 Apple تدمج AI محلي في جميع أجهزتها الجديدة', url: '/articles' },
+  { text: '💼 الطلب على وظائف AI يرتفع 300% في المنطقة العربية', url: '/articles/ai-business-no-code' },
+  { text: '🎨 Midjourney v7 ينتج صوراً لا تُميّز عن الحقيقة', url: '/articles/free-ai-tools-2026' },
+];
+---
+
+<div class="news-ticker">
+  <div class="ticker-label">🔴 عاجل</div>
+  <div class="ticker-track">
+    <div class="ticker-inner">
+      {newsItems.map((item) => <a href={item.url} class="ticker-link">{item.text}</a>)}
+      {newsItems.map((item) => <a href={item.url} class="ticker-link">{item.text}</a>)}
+    </div>
+  </div>
+</div>
+
+<style>
+  .ticker-link {
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+  .ticker-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+</style>

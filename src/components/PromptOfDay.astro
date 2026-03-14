@@ -1,0 +1,230 @@
+---
+const prompts = [
+  {
+    emoji: '🎯',
+    title: 'برومبت التخطيط الاستراتيجي',
+    category: 'أعمال',
+    prompt: 'أنت مستشار أعمال استراتيجي بخبرة 20 سنة. ساعدني في وضع خطة عمل ربع سنوية لـ [مشروعك]. حدد 3 أهداف رئيسية مع مؤشرات قياس واضحة (KPIs)، وخطوات تنفيذية أسبوعية، والموارد المطلوبة لكل هدف.',
+    tip: 'استبدل [مشروعك] بوصف دقيق لمشروعك مع ذكر المجال والحجم.',
+  },
+  {
+    emoji: '✍️',
+    title: 'برومبت كتابة ثريد viral',
+    category: 'محتوى',
+    prompt: 'اكتب ثريد تويتر من 10 تغريدات عن [الموضوع]. ابدأ بخطّاف (hook) قوي يثير الفضول، استخدم أرقاماً وإحصائيات، أضف أمثلة عملية، واختم بدعوة للتفاعل. اجعل كل تغريدة مستقلة بذاتها.',
+    tip: 'أضف "بأسلوب بسيط وعملي" للحصول على محتوى سهل الفهم.',
+  },
+  {
+    emoji: '💻',
+    title: 'برومبت تحويل فكرة لكود',
+    category: 'برمجة',
+    prompt: 'أنت مهندس برمجيات أول. حوّل هذه الفكرة إلى كود نظيف: [اشرح فكرتك]. استخدم [اللغة]. اكتب الكود مع تعليقات توضيحية، معالجة الأخطاء، واختبارات وحدة. اشرح قرارات التصميم.',
+    tip: 'حدد اللغة وإطار العمل بوضوح للحصول على كود متوافق مع مشروعك.',
+  },
+  {
+    emoji: '📧',
+    title: 'برومبت إيميل احترافي',
+    category: 'كتابة',
+    prompt: 'اكتب إيميل احترافي لـ [الغرض] موجه إلى [المستلم]. النبرة: [رسمية/ودية/مقنعة]. يجب أن يتضمن: سطر موضوع جذاب، مقدمة مختصرة، صلب الموضوع بنقاط واضحة، ودعوة لاتخاذ إجراء محدد.',
+    tip: 'حدد علاقتك بالمستلم والسياق لضبط النبرة بدقة.',
+  },
+  {
+    emoji: '🎨',
+    title: 'برومبت تصميم صور AI',
+    category: 'إبداعي',
+    prompt: 'A professional [subject] in [style] art style, [color palette] colors, [lighting type] lighting, highly detailed, centered composition, clean background, suitable for [use case] --ar 16:9 --quality 2',
+    tip: 'استبدل الأقواس بوصف دقيق. أضف "photorealistic" للواقعية أو "illustration" للرسوم.',
+  },
+  {
+    emoji: '📊',
+    title: 'برومبت تحليل المنافسين',
+    category: 'أعمال',
+    prompt: 'حلّل المنافسين الرئيسيين لـ [منتجك/خدمتك] في السوق [السوق المستهدف]. لكل منافس اذكر: نقاط القوة والضعف، استراتيجية التسعير، قنوات التسويق، ومراجعات العملاء. اقترح 5 فرص للتميّز.',
+    tip: 'اذكر 2-3 منافسين محددين بالاسم لتحليل أدق.',
+  },
+  {
+    emoji: '🧠',
+    title: 'برومبت تبسيط مفهوم معقد',
+    category: 'تعليم',
+    prompt: 'اشرح [المفهوم] بثلاث مستويات: 1) كما لو كنت تشرحه لطفل 10 سنوات مع تشبيهات من الحياة اليومية، 2) لشخص بالغ غير متخصص مع أمثلة عملية، 3) لمتخصص مع التفاصيل التقنية. أضف رسماً توضيحياً بالنص.',
+    tip: 'كلما كان المفهوم محدداً أكثر، كان الشرح أفضل.',
+  },
+  {
+    emoji: '🔍',
+    title: 'برومبت مراجعة السيرة الذاتية',
+    category: 'مهني',
+    prompt: 'أنت خبير توظيف في [المجال]. راجع سيرتي الذاتية وقدم: تقييماً من 10، نقاط القوة، 5 تحسينات محددة مع أمثلة، كلمات مفتاحية مفقودة لنظام ATS، واقتراح ملخص احترافي جديد. سيرتي: [الصق السيرة].',
+    tip: 'اذكر الوظيفة المستهدفة للحصول على نصائح مخصصة.',
+  },
+  {
+    emoji: '📱',
+    title: 'برومبت خطة محتوى شهرية',
+    category: 'محتوى',
+    prompt: 'ضع خطة محتوى لمدة 30 يوماً لحساب [المنصة] في مجال [التخصص]. لكل يوم حدد: نوع المحتوى (ريلز/كاروسيل/ستوري/بوست)، الفكرة الرئيسية، الهاشتاقات، وأفضل وقت للنشر. ركّز على زيادة التفاعل.',
+    tip: 'اذكر عدد متابعيك الحالي وهدفك لنتائج أدق.',
+  },
+  {
+    emoji: '⚡',
+    title: 'برومبت تحسين الأداء البرمجي',
+    category: 'برمجة',
+    prompt: 'حلّل هذا الكود وحسّن أداءه: [الكود]. اذكر: التعقيد الزمني والمكاني الحالي، الاختناقات (bottlenecks)، الحل المحسّن مع شرح التحسين، والتعقيد الجديد. قارن الأداء قبل وبعد.',
+    tip: 'أضف حجم البيانات المتوقع لتحسينات أكثر واقعية.',
+  },
+  {
+    emoji: '🎬',
+    title: 'برومبت سكريبت فيديو يوتيوب',
+    category: 'محتوى',
+    prompt: 'اكتب سكريبت فيديو يوتيوب مدته [المدة] دقائق عن [الموضوع]. يتضمن: مقدمة hook في أول 30 ثانية، 3-5 نقاط رئيسية مع انتقالات سلسة، B-roll مقترح، وخاتمة مع CTA. اجعله حوارياً وممتعاً.',
+    tip: 'حدد جمهورك المستهدف وأسلوب قناتك (تعليمي/ترفيهي).',
+  },
+  {
+    emoji: '🛡️',
+    title: 'برومبت فحص الأمان',
+    category: 'برمجة',
+    prompt: 'أنت خبير أمن سيبراني. افحص هذا الكود/النظام بحثاً عن ثغرات أمنية: [الكود أو الوصف]. صنّف كل ثغرة حسب الخطورة (CVSS)، اشرح كيف يمكن استغلالها، واقترح الإصلاح مع كود جاهز.',
+    tip: 'اذكر نوع التطبيق (ويب/موبايل/API) والتقنيات المستخدمة.',
+  },
+  {
+    emoji: '💰',
+    title: 'برومبت دراسة جدوى مشروع',
+    category: 'أعمال',
+    prompt: 'أعد دراسة جدوى مبسطة لمشروع [الوصف] تتضمن: ملخص تنفيذي، تحليل السوق والطلب، التكاليف التأسيسية والتشغيلية، الإيرادات المتوقعة، نقطة التعادل، تحليل SWOT، والمخاطر مع خطط التخفيف.',
+    tip: 'أضف الميزانية المتاحة والموقع الجغرافي المستهدف.',
+  },
+  {
+    emoji: '🌐',
+    title: 'برومبت تحسين SEO',
+    category: 'محتوى',
+    prompt: 'أنت خبير SEO. حلّل صفحة [الرابط أو الوصف] واقترح تحسينات: عنوان meta وdescription محسّنين، 10 كلمات مفتاحية مستهدفة (رئيسية + طويلة الذيل)، هيكل العناوين H1-H3، واقتراحات للروابط الداخلية والمحتوى المفقود.',
+    tip: 'اذكر الكلمة المفتاحية الرئيسية التي تستهدفها.',
+  },
+];
+
+const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+const todayPrompt = prompts[dayOfYear % prompts.length];
+---
+
+<section class="section" id="prompt-of-day">
+  <div class="container" style="max-width:740px;">
+    <div class="pod-card">
+      <div class="pod-badge">🗓️ برومبت اليوم</div>
+      <div class="pod-header">
+        <span class="pod-emoji">{todayPrompt.emoji}</span>
+        <div>
+          <h3 class="pod-title">{todayPrompt.title}</h3>
+          <span class="pod-category">{todayPrompt.category}</span>
+        </div>
+      </div>
+      <div class="pod-prompt" id="podPromptText">
+        {todayPrompt.prompt}
+      </div>
+      <div class="pod-tip">
+        <strong>💡 نصيحة:</strong> {todayPrompt.tip}
+      </div>
+      <button class="pod-copy-btn" id="podCopyBtn" data-prompt={todayPrompt.prompt}>
+        📋 نسخ البرومبت
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pod-card {
+    position: relative;
+    background: var(--surface);
+    border: 2px solid transparent;
+    border-radius: var(--radius, 16px);
+    padding: 2rem;
+    background-image: linear-gradient(var(--surface), var(--surface)),
+                      linear-gradient(135deg, var(--accent), #a855f7, var(--accent));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .pod-badge {
+    display: inline-block;
+    background: var(--accent-light, rgba(99,102,241,0.1));
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+  }
+  .pod-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .pod-emoji {
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+  .pod-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0 0 0.25rem;
+  }
+  .pod-category {
+    font-size: 0.8rem;
+    color: var(--text-muted, var(--text-2));
+    background: var(--surface2, rgba(0,0,0,0.04));
+    padding: 2px 10px;
+    border-radius: 999px;
+  }
+  .pod-prompt {
+    background: var(--surface2, rgba(0,0,0,0.03));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm, 10px);
+    padding: 1.25rem;
+    font-size: 0.92rem;
+    line-height: 1.85;
+    color: var(--text-2, var(--text));
+    margin-bottom: 1rem;
+  }
+  .pod-tip {
+    font-size: 0.82rem;
+    color: var(--text-muted, var(--text-2));
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--accent-light, rgba(99,102,241,0.06));
+    border-radius: var(--radius-sm, 10px);
+  }
+  .pod-tip strong {
+    color: var(--accent);
+  }
+  .pod-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm, 10px);
+    padding: 10px 24px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    font-family: inherit;
+  }
+  .pod-copy-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('podCopyBtn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const text = (btn as HTMLElement).dataset.prompt || '';
+      navigator.clipboard.writeText(text);
+      btn.textContent = '✅ تم النسخ!';
+      setTimeout(() => { btn.textContent = '📋 نسخ البرومبت'; }, 2000);
+    });
+  }
+</script>

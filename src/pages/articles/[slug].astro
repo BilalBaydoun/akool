@@ -1,0 +1,901 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import ChatWidget from '../../components/ChatWidget.astro';
+import RelatedArticles from '../../components/RelatedArticles.astro';
+import SearchModal from '../../components/SearchModal.astro';
+
+export async function getStaticPaths() {
+  const articles = await getCollection('articles');
+  return articles.map((article) => ({
+    params: { slug: article.id },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+const { Content } = await render(article);
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+---
+
+<BaseLayout title={`${article.data.title} — عَقول`} description={article.data.excerpt}>
+  <!-- Reading Progress Bar -->
+  <div id="reading-progress" style="position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg, var(--accent), var(--accent-dark, var(--accent)));z-index:1001;transition:width 0.1s linear;"></div>
+
+  <Navbar />
+  <SearchModal />
+
+  <article class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:800px;">
+      <!-- Back link -->
+      <a href="/#articles" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:0.9rem;margin-bottom:2rem;">
+        → العودة للمقالات
+      </a>
+
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:3rem;">
+        <div style={`width:100px;height:100px;border-radius:var(--radius-lg);background:${article.data.tagFilter === 'news' ? 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)' : article.data.tagFilter === 'tutorials' ? 'linear-gradient(135deg, #1A6B4A 0%, #22C55E 100%)' : article.data.tagFilter === 'tips' ? 'linear-gradient(135deg, #EA580C 0%, #FB923C 100%)' : article.data.tagFilter === 'tools' ? 'linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)' : 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)'};display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;`}>
+          <span style="font-size:3rem;filter:brightness(10);">{article.data.emoji}</span>
+        </div>
+        <div class="blog-meta" style="justify-content:center;margin-bottom:1rem;">
+          <span class="blog-tag">{article.data.tag}</span>
+          <span class="blog-date">{formatDate(article.data.date)}</span>
+          <span class="blog-ai-badge">🤖 {article.data.author}</span>
+          <span class="blog-read-time">⏱ {article.data.readTime}</span>
+        </div>
+        <h1 style="font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:900;line-height:1.4;margin-bottom:1rem;">
+          {article.data.title}
+        </h1>
+        <p style="color:var(--text-muted);font-size:1.05rem;line-height:1.8;">
+          {article.data.excerpt}
+        </p>
+      </div>
+
+      <!-- Table of Contents -->
+      <div class="toc-card" id="toc-card" style="display:none;">
+        <div class="toc-header" id="toc-toggle" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:1rem 1.25rem;">
+          <span style="font-weight:700;font-size:1rem;">📑 فهرس المقال</span>
+          <span id="toc-arrow" style="transition:transform 0.3s;">▼</span>
+        </div>
+        <nav id="toc-list" style="padding:0 1.25rem 1rem;"></nav>
+      </div>
+
+      <!-- Reading Time + Listen -->
+      <div class="article-toolbar">
+        <div class="toolbar-info">
+          <span>⏱</span>
+          <span>وقت القراءة: <strong style="color:var(--text);">{article.data.readTime}</strong></span>
+          <span style="margin:0 4px;">•</span>
+          <span>✍️ {article.data.author}</span>
+          <span style="margin:0 4px;">•</span>
+          <span>👁 <strong id="viewCount">0</strong> مشاهدة</span>
+        </div>
+        <div class="toolbar-actions">
+          <button id="ttsBtn" class="tts-btn" title="استمع للمقال">
+            <span id="ttsIcon">🔊</span>
+            <span id="ttsLabel">استمع</span>
+          </button>
+          <select id="ttsSpeed" class="tts-speed" title="سرعة القراءة">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="article-content">
+        <Content />
+      </div>
+
+      <!-- Reactions -->
+      <div class="reactions-bar" data-article-id={article.id} style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+        <span style="font-size:0.85rem;font-weight:700;color:var(--text-muted,var(--text-2));margin-bottom:0.75rem;display:block;">ما رأيك بالمقال؟</span>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button class="reaction-btn" data-reaction="useful">
+            <span class="reaction-emoji">👍</span>
+            <span class="reaction-label">مفيد</span>
+            <span class="reaction-count" data-count-for="useful">0</span>
+          </button>
+          <button class="reaction-btn" data-reaction="love">
+            <span class="reaction-emoji">❤️</span>
+            <span class="reaction-label">أعجبني</span>
+            <span class="reaction-count" data-count-for="love">0</span>
+          </button>
+          <button class="reaction-btn" data-reaction="fire">
+            <span class="reaction-emoji">🔥</span>
+            <span class="reaction-label">رائع</span>
+            <span class="reaction-count" data-count-for="fire">0</span>
+          </button>
+          <button class="reaction-btn" data-reaction="learned">
+            <span class="reaction-emoji">💡</span>
+            <span class="reaction-label">تعلمت شيئاً</span>
+            <span class="reaction-count" data-count-for="learned">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Share / Back -->
+      <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+        <a href="/#articles" class="btn-outline" style="padding:10px 20px;font-size:0.85rem;">→ المزيد من المقالات</a>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+          <a id="share-whatsapp" class="btn-outline" style="padding:6px 14px;font-size:0.8rem;" href="#" target="_blank" rel="noopener">💬 واتساب</a>
+          <a id="share-telegram" class="btn-outline" style="padding:6px 14px;font-size:0.8rem;" href="#" target="_blank" rel="noopener">✈️ تلغرام</a>
+          <a id="share-twitter" class="btn-outline" style="padding:6px 14px;font-size:0.8rem;" href="#" target="_blank" rel="noopener">🐦 تويتر</a>
+          <button class="btn-primary" style="padding:6px 14px;font-size:0.8rem;" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='✅ تم النسخ!';setTimeout(()=>this.textContent='📋 نسخ الرابط',2000)">
+            📋 نسخ الرابط
+          </button>
+          <button class="btn-outline" style="padding:6px 14px;font-size:0.8rem;" onclick="window.print()">🖨️ طباعة / PDF</button>
+          <button id="bookmark-btn" class="btn-outline" style="padding:6px 14px;font-size:0.8rem;" data-article-id={article.id} data-article-title={article.data.title}>
+            🔖 حفظ المقال
+          </button>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- Comments Section -->
+  <section class="section" id="comments">
+    <div class="container" style="max-width:800px;">
+      <div class="section-header" style="margin-bottom:2rem;">
+        <h2 class="section-title" style="font-size:1.4rem;">💬 التعليقات</h2>
+        <p class="section-sub" style="font-size:0.9rem;">شارك رأيك — وكيل AI يراجع التعليقات ويرد عليها</p>
+      </div>
+
+      <!-- Comment Form -->
+      <div class="comment-form-card" style="margin-bottom:2rem;" data-article-title={article.data.title}>
+        <!-- Guest fields (hidden when logged in) -->
+        <div id="cmtGuestFields" class="form-row">
+          <input type="text" class="form-input" id="cmtName" placeholder="اسمك (مطلوب)">
+          <input type="email" class="form-input" id="cmtEmail" placeholder="بريدك الإلكتروني (اختياري — للإشعارات)">
+        </div>
+        <!-- Logged-in user display -->
+        <div id="cmtUserInfo" class="hidden" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;" id="cmtUserAvatar">👤</div>
+          <span id="cmtUserName" style="font-weight:700;font-size:0.9rem;">—</span>
+        </div>
+        <textarea class="form-textarea" id="cmtText" rows="3" placeholder="اكتب تعليقك هنا..."></textarea>
+        <div id="cmtReplyTo" class="hidden" style="margin-bottom:8px;padding:8px 12px;background:var(--accent-light);border-radius:var(--radius-sm);font-size:0.82rem;display:flex;justify-content:space-between;align-items:center;">
+          <span>↩️ رد على: <strong id="cmtReplyName"></strong></span>
+          <button id="cmtCancelReply" style="background:none;border:none;cursor:pointer;font-size:0.82rem;color:var(--rose);">✕ إلغاء</button>
+        </div>
+        <div class="comment-form-footer">
+          <span class="ai-reply-note">🤖 ريم تراجع كل تعليق قبل النشر</span>
+          <button class="btn-comment" id="cmtSubmit">إرسال التعليق</button>
+        </div>
+        <div id="cmtStatus" class="hidden" style="margin-top:12px;padding:10px 14px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;"></div>
+      </div>
+
+      <!-- Comments Feed -->
+      <div id="cmtFeed" class="comments-feed"></div>
+      <div id="cmtEmpty" style="text-align:center;padding:2rem;color:var(--text-muted);">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">💬</div>
+        <p>لا توجد تعليقات بعد — كن أول من يعلّق!</p>
+      </div>
+    </div>
+  </section>
+
+  <RelatedArticles currentId={article.id} currentTag={article.data.tagFilter} />
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style is:global>
+  .article-content h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 2.5rem 0 1rem;
+    color: var(--text);
+  }
+  .article-content h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 2rem 0 0.75rem;
+    color: var(--text-2);
+  }
+  .article-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.9;
+    color: var(--text-2);
+  }
+  .article-content ul, .article-content ol {
+    margin: 1rem 0 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .article-content li {
+    line-height: 1.8;
+    color: var(--text-2);
+  }
+  .article-content strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+  .article-content blockquote {
+    background: var(--accent-light);
+    border-right: 4px solid var(--accent);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-sm);
+    margin: 1.5rem 0;
+    color: var(--text-2);
+    font-style: normal;
+  }
+  .article-content code {
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    color: var(--accent-dark);
+  }
+  .article-content pre {
+    background: var(--text);
+    color: #e2e8f0;
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    direction: ltr;
+    text-align: left;
+  }
+  .article-content pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: 0.85rem;
+  }
+  .article-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+  }
+  .article-content th, .article-content td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    text-align: right;
+  }
+  .article-content th {
+    background: var(--surface2);
+    font-weight: 700;
+    color: var(--text);
+  }
+  .article-content td {
+    color: var(--text-2);
+  }
+  .article-content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+  .article-content a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  /* Article Toolbar */
+  .article-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 2rem;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .toolbar-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tts-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tts-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+  .tts-btn.playing {
+    background: var(--rose);
+  }
+  .tts-btn.playing:hover {
+    background: #C81E45;
+  }
+  .tts-speed {
+    padding: 4px 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-family: var(--font);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  /* Table of Contents */
+  .toc-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 2.5rem;
+  }
+  .toc-card nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .toc-card nav a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    transition: color 0.2s;
+    display: block;
+  }
+  .toc-card nav a:hover {
+    color: var(--accent);
+  }
+  .toc-card nav a.toc-h3 {
+    padding-right: 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  /* Reactions */
+  .reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2, rgba(0,0,0,0.04));
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    color: var(--text-2, var(--text));
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .reaction-btn:hover {
+    background: var(--accent-light, rgba(99,102,241,0.1));
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .reaction-btn.reacted {
+    background: var(--accent-light, rgba(99,102,241,0.12));
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .reaction-emoji {
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .reaction-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 14px;
+    text-align: center;
+  }
+</style>
+
+<script>
+  // ── TEXT-TO-SPEECH ──
+  const ttsBtn = document.getElementById('ttsBtn') as HTMLButtonElement;
+  const ttsIcon = document.getElementById('ttsIcon') as HTMLElement;
+  const ttsLabel = document.getElementById('ttsLabel') as HTMLElement;
+  const ttsSpeed = document.getElementById('ttsSpeed') as HTMLSelectElement;
+  let ttsUtterance: SpeechSynthesisUtterance | null = null;
+  let ttsPlaying = false;
+  let ttsPaused = false;
+
+  function getArticleText(): string {
+    const el = document.querySelector('.article-content');
+    if (!el) return '';
+    // Get clean text, skip code blocks
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('pre, code, table').forEach(e => e.remove());
+    return clone.textContent?.trim() || '';
+  }
+
+  function getArabicVoice(): SpeechSynthesisVoice | null {
+    const voices = speechSynthesis.getVoices();
+    // Prefer Arabic voices
+    const arabic = voices.find(v => v.lang.startsWith('ar'));
+    if (arabic) return arabic;
+    // Fallback: any voice
+    return voices[0] || null;
+  }
+
+  function startTTS() {
+    const text = getArticleText();
+    if (!text) return;
+
+    speechSynthesis.cancel();
+    ttsUtterance = new SpeechSynthesisUtterance(text);
+    ttsUtterance.lang = 'ar-SA';
+    ttsUtterance.rate = parseFloat(ttsSpeed.value);
+
+    const voice = getArabicVoice();
+    if (voice) ttsUtterance.voice = voice;
+
+    ttsUtterance.onend = () => {
+      ttsPlaying = false;
+      ttsPaused = false;
+      ttsIcon.textContent = '🔊';
+      ttsLabel.textContent = 'استمع';
+      ttsBtn.classList.remove('playing');
+    };
+
+    speechSynthesis.speak(ttsUtterance);
+    ttsPlaying = true;
+    ttsPaused = false;
+    ttsIcon.textContent = '⏹️';
+    ttsLabel.textContent = 'إيقاف';
+    ttsBtn.classList.add('playing');
+  }
+
+  function stopTTS() {
+    speechSynthesis.cancel();
+    ttsPlaying = false;
+    ttsPaused = false;
+    ttsIcon.textContent = '🔊';
+    ttsLabel.textContent = 'استمع';
+    ttsBtn.classList.remove('playing');
+  }
+
+  function pauseTTS() {
+    speechSynthesis.pause();
+    ttsPaused = true;
+    ttsIcon.textContent = '▶️';
+    ttsLabel.textContent = 'استئناف';
+  }
+
+  function resumeTTS() {
+    speechSynthesis.resume();
+    ttsPaused = false;
+    ttsIcon.textContent = '⏸️';
+    ttsLabel.textContent = 'إيقاف مؤقت';
+  }
+
+  ttsBtn?.addEventListener('click', () => {
+    if (!ttsPlaying) {
+      startTTS();
+    } else if (ttsPaused) {
+      resumeTTS();
+    } else {
+      stopTTS();
+    }
+  });
+
+  ttsSpeed?.addEventListener('change', () => {
+    if (ttsPlaying) {
+      // Restart with new speed
+      startTTS();
+    }
+  });
+
+  // Load voices (some browsers load async)
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => {};
+  }
+
+  // Stop TTS when leaving page
+  window.addEventListener('beforeunload', () => speechSynthesis.cancel());
+
+  // Table of Contents generation
+  document.addEventListener('DOMContentLoaded', () => {
+    // ── VIEWS COUNTER ──
+    {
+      const reactionsBarEl = document.querySelector('.reactions-bar') as HTMLElement;
+      const viewArticleId = reactionsBarEl?.dataset?.articleId || 'unknown';
+      const viewKey = 'akool-views-' + viewArticleId;
+      const sessionKey = 'akool-viewed-' + viewArticleId;
+
+      // Get current count
+      let viewCount = parseInt(localStorage.getItem(viewKey) || '0', 10);
+
+      // Only increment once per session
+      if (!sessionStorage.getItem(sessionKey)) {
+        viewCount++;
+        localStorage.setItem(viewKey, String(viewCount));
+        sessionStorage.setItem(sessionKey, '1');
+      }
+
+      // Display
+      const viewCountEl = document.getElementById('viewCount');
+      if (viewCountEl) viewCountEl.textContent = String(viewCount);
+    }
+
+    // Auto-fill saved user info
+    try {
+      const savedName = localStorage.getItem('akool-guest-name') || '';
+      const savedEmail = localStorage.getItem('akool-guest-email') || '';
+      if (savedName) (document.getElementById('cmtName') as HTMLInputElement).value = savedName;
+      if (savedEmail) (document.getElementById('cmtEmail') as HTMLInputElement).value = savedEmail;
+    } catch {}
+
+    const content = document.querySelector('.article-content');
+    const tocCard = document.getElementById('toc-card');
+    const tocList = document.getElementById('toc-list');
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocArrow = document.getElementById('toc-arrow');
+
+    if (content && tocCard && tocList) {
+      const headings = content.querySelectorAll('h2, h3');
+      if (headings.length > 1) {
+        headings.forEach((heading, i) => {
+          const id = 'heading-' + i + '-' + heading.textContent.trim().replace(/\s+/g, '-').replace(/[^\u0600-\u06FF\w-]/g, '');
+          heading.id = id;
+          const link = document.createElement('a');
+          link.href = '#' + id;
+          link.textContent = heading.textContent;
+          if (heading.tagName === 'H3') {
+            link.classList.add('toc-h3');
+          }
+          tocList.appendChild(link);
+        });
+        tocCard.style.display = 'block';
+
+        let tocOpen = true;
+        tocToggle.addEventListener('click', () => {
+          tocOpen = !tocOpen;
+          tocList.style.display = tocOpen ? 'flex' : 'none';
+          tocArrow.style.transform = tocOpen ? '' : 'rotate(-90deg)';
+        });
+      }
+    }
+
+    // Reading progress bar
+    const progressBar = document.getElementById('reading-progress');
+    const article = document.querySelector('.article-content');
+    if (progressBar && article) {
+      window.addEventListener('scroll', () => {
+        const articleTop = article.offsetTop;
+        const articleHeight = article.offsetHeight;
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const progress = Math.min(100, Math.max(0, ((scrollY - articleTop + windowHeight) / (articleHeight + windowHeight)) * 100));
+        progressBar.style.width = progress + '%';
+      }, { passive: true });
+    }
+
+    // Share buttons
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    const whatsapp = document.getElementById('share-whatsapp');
+    const telegram = document.getElementById('share-telegram');
+    const twitter = document.getElementById('share-twitter');
+    if (whatsapp) whatsapp.href = 'https://wa.me/?text=' + title + '%20' + url;
+    if (telegram) telegram.href = 'https://t.me/share/url?url=' + url + '&text=' + title;
+    if (twitter) twitter.href = 'https://twitter.com/intent/tweet?url=' + url + '&text=' + title;
+
+    // Bookmark functionality
+    const bookmarkBtn = document.getElementById('bookmark-btn') as HTMLButtonElement;
+    if (bookmarkBtn) {
+      const articleId = bookmarkBtn.dataset.articleId || '';
+      const articleTitle = bookmarkBtn.dataset.articleTitle || '';
+
+      function getBookmarks(): Array<{ id: string; title: string }> {
+        try {
+          return JSON.parse(localStorage.getItem('akool-bookmarks') || '[]');
+        } catch {
+          return [];
+        }
+      }
+
+      function isBookmarked(): boolean {
+        return getBookmarks().some((b) => b.id === articleId);
+      }
+
+      function updateBtn() {
+        if (isBookmarked()) {
+          bookmarkBtn.textContent = 'تم الحفظ ✅';
+        } else {
+          bookmarkBtn.textContent = '🔖 حفظ المقال';
+        }
+      }
+
+      bookmarkBtn.addEventListener('click', () => {
+        let bookmarks = getBookmarks();
+        if (isBookmarked()) {
+          bookmarks = bookmarks.filter((b) => b.id !== articleId);
+        } else {
+          bookmarks.push({ id: articleId, title: articleTitle });
+        }
+        localStorage.setItem('akool-bookmarks', JSON.stringify(bookmarks));
+        updateBtn();
+      });
+
+      updateBtn();
+    }
+
+    // Reactions
+    const reactionsBar = document.querySelector('.reactions-bar') as HTMLElement;
+    if (reactionsBar) {
+      const artId = reactionsBar.dataset.articleId || '';
+      const storageKey = 'akool-reactions-' + artId;
+      const userKey = 'akool-reacted-' + artId;
+
+      function getReactions(): Record<string, number> {
+        try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { return {}; }
+      }
+      function getUserReactions(): string[] {
+        try { return JSON.parse(localStorage.getItem(userKey) || '[]'); } catch { return []; }
+      }
+
+      function renderReactions() {
+        const reactions = getReactions();
+        const userReactions = getUserReactions();
+        reactionsBar.querySelectorAll('.reaction-btn').forEach((btn) => {
+          const el = btn as HTMLElement;
+          const type = el.dataset.reaction || '';
+          const countEl = el.querySelector('.reaction-count') as HTMLElement;
+          if (countEl) countEl.textContent = String(reactions[type] || 0);
+          if (userReactions.includes(type)) {
+            el.classList.add('reacted');
+          } else {
+            el.classList.remove('reacted');
+          }
+        });
+      }
+
+      reactionsBar.querySelectorAll('.reaction-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const el = btn as HTMLElement;
+          const type = el.dataset.reaction || '';
+          const reactions = getReactions();
+          const userReactions = getUserReactions();
+          if (userReactions.includes(type)) return; // already reacted
+          reactions[type] = (reactions[type] || 0) + 1;
+          userReactions.push(type);
+          localStorage.setItem(storageKey, JSON.stringify(reactions));
+          localStorage.setItem(userKey, JSON.stringify(userReactions));
+          renderReactions();
+        });
+      });
+
+      renderReactions();
+    }
+
+    // ── COMMENTS SYSTEM (Threaded, AI-moderated, Email notifications) ──
+    const cmtArticleId = document.querySelector('.reactions-bar')?.getAttribute('data-article-id') || 'unknown';
+    const cmtKey = 'akool-comments-' + cmtArticleId;
+    const articleTitle = document.querySelector('.comment-form-card')?.getAttribute('data-article-title') || '';
+    let replyToId: string | null = null;
+
+    interface Comment {
+      id: string;
+      parentId: string | null;
+      name: string;
+      email: string;
+      text: string;
+      date: string;
+      status: 'approved' | 'rejected';
+      aiReply?: string;
+    }
+
+    // Check if user is logged in (hide guest fields)
+    async function checkLoggedInUser() {
+      try {
+        const mod = await import('../../lib/supabase');
+        const sb = mod.supabase;
+        if (!sb.supabaseUrl) return;
+        const { data: { user } } = await sb.auth.getUser();
+        if (user) {
+          const { data: profile } = await sb.from('profiles').select('username').eq('id', user.id).single();
+          if (profile) {
+            const guestFields = document.getElementById('cmtGuestFields') as HTMLElement;
+            const userInfo = document.getElementById('cmtUserInfo') as HTMLElement;
+            guestFields.classList.add('hidden');
+            userInfo.classList.remove('hidden');
+            userInfo.style.display = 'flex';
+            (document.getElementById('cmtUserName') as HTMLElement).textContent = profile.username;
+            (document.getElementById('cmtUserAvatar') as HTMLElement).textContent = profile.username[0];
+            (document.getElementById('cmtName') as HTMLInputElement).value = profile.username;
+            (document.getElementById('cmtEmail') as HTMLInputElement).value = user.email || '';
+          }
+        }
+      } catch {}
+    }
+    checkLoggedInUser();
+
+    // Reply-to handling
+    document.getElementById('cmtCancelReply')?.addEventListener('click', () => {
+      replyToId = null;
+      document.getElementById('cmtReplyTo')?.classList.add('hidden');
+    });
+
+    function getComments(): Comment[] {
+      try { return JSON.parse(localStorage.getItem(cmtKey) || '[]'); }
+      catch { return []; }
+    }
+
+    function renderComments() {
+      const feed = document.getElementById('cmtFeed') as HTMLElement;
+      const empty = document.getElementById('cmtEmpty') as HTMLElement;
+      const comments = getComments().filter(c => c.status === 'approved');
+
+      if (comments.length === 0) {
+        empty.style.display = 'block';
+        feed.innerHTML = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      // Build threaded structure
+      const topLevel = comments.filter(c => !c.parentId);
+      const replies = comments.filter(c => c.parentId);
+
+      function getReplies(parentId: string): Comment[] {
+        return replies.filter(c => c.parentId === parentId);
+      }
+
+      function renderComment(c: Comment, depth: number = 0): string {
+        const indent = depth > 0 ? 'padding-right:24px;border-right:2px solid var(--border);margin-right:16px;' : '';
+        const childReplies = getReplies(c.id);
+
+        return `
+          <div class="comment-thread" style="${indent}">
+            <div class="comment-item">
+              <div class="comment-header">
+                <div class="comment-avatar user">${c.name[0]}</div>
+                <span class="comment-author">${c.name}</span>
+                <span class="comment-time">${new Date(c.date).toLocaleDateString('ar-EG')}</span>
+                <button class="reply-to-btn" data-id="${c.id}" data-name="${c.name}" style="margin-right:auto;background:none;border:none;color:var(--accent);font-size:0.78rem;font-weight:700;cursor:pointer;font-family:var(--font);">↩️ رد</button>
+              </div>
+              <p class="comment-text">${escapeHtml(c.text)}</p>
+            </div>
+            ${c.aiReply ? `
+            <div class="comment-item ai-reply-item">
+              <div class="comment-header">
+                <div class="comment-avatar ai">🤖</div>
+                <span class="comment-author">ريم — مديرة المنتدى</span>
+                <span class="ai-label">رد آلي</span>
+              </div>
+              <p class="comment-text">${c.aiReply}</p>
+            </div>` : ''}
+          </div>
+          ${childReplies.map(r => renderComment(r, depth + 1)).join('')}
+        `;
+      }
+
+      feed.innerHTML = topLevel.map(c => renderComment(c)).join('');
+
+      // Attach reply buttons
+      feed.querySelectorAll('.reply-to-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          replyToId = (btn as HTMLElement).dataset.id || null;
+          const name = (btn as HTMLElement).dataset.name || '';
+          (document.getElementById('cmtReplyName') as HTMLElement).textContent = name;
+          document.getElementById('cmtReplyTo')?.classList.remove('hidden');
+          (document.getElementById('cmtText') as HTMLTextAreaElement).focus();
+        });
+      });
+    }
+
+    function escapeHtml(text: string): string {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showCmtStatus(msg: string, type: 'success' | 'error') {
+      const el = document.getElementById('cmtStatus') as HTMLElement;
+      el.textContent = msg;
+      el.style.background = type === 'success' ? 'var(--accent-light)' : 'var(--rose-light)';
+      el.style.color = type === 'success' ? 'var(--accent)' : 'var(--rose)';
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 6000);
+    }
+
+    // Submit comment
+    document.getElementById('cmtSubmit')?.addEventListener('click', async () => {
+      const name = (document.getElementById('cmtName') as HTMLInputElement).value.trim();
+      const email = (document.getElementById('cmtEmail') as HTMLInputElement).value.trim();
+      // Save name/email for reuse across the site
+      try {
+        localStorage.setItem('akool-guest-name', name);
+        if (email) localStorage.setItem('akool-guest-email', email);
+      } catch {}
+      const text = (document.getElementById('cmtText') as HTMLTextAreaElement).value.trim();
+      const submitBtn = document.getElementById('cmtSubmit') as HTMLButtonElement;
+
+      if (!name) { showCmtStatus('يرجى إدخال اسمك', 'error'); return; }
+      if (!text) { showCmtStatus('يرجى كتابة تعليق', 'error'); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '🤖 ريم تراجع التعليق...';
+
+      let result: { approved: boolean; reason?: string; aiReply?: string };
+
+      // Try API moderation first (real AI), fallback to local
+      try {
+        const res = await fetch('/api/moderate-comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, email, comment: text,
+            articleTitle, articleUrl: window.location.href,
+            parentId: replyToId,
+          }),
+        });
+        result = await res.json();
+      } catch {
+        // Fallback: basic local moderation
+        const banned = /سب|شتم|لعن|spam|porn|hack/i;
+        result = banned.test(text)
+          ? { approved: false, reason: 'محتوى غير مناسب' }
+          : { approved: true, aiReply: `شكراً ${name} على تعليقك! 🌟` };
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'إرسال التعليق';
+
+      const comment: Comment = {
+        id: Date.now().toString(),
+        parentId: replyToId,
+        name, email, text,
+        date: new Date().toISOString(),
+        status: result.approved ? 'approved' : 'rejected',
+        aiReply: result.aiReply,
+      };
+
+      // Save
+      const comments = getComments();
+      comments.push(comment);
+      localStorage.setItem(cmtKey, JSON.stringify(comments));
+
+      if (result.approved) {
+        showCmtStatus(email
+          ? '✅ تم نشر تعليقك! ستصلك رسالة تأكيد على بريدك.'
+          : '✅ تم نشر تعليقك!', 'success');
+        if (typeof window.__addNotification === 'function') {
+          window.__addNotification('✅ تم نشر تعليقك على "' + articleTitle + '"', window.location.href + '#comments');
+        }
+      } else {
+        showCmtStatus(`❌ لم يتم النشر: ${result.reason}${email ? ' — ستصلك رسالة على بريدك.' : ''}`, 'error');
+        if (typeof window.__addNotification === 'function') {
+          window.__addNotification('❌ لم يتم نشر تعليقك: ' + result.reason, window.location.href + '#comments');
+        }
+      }
+
+      // Clear
+      (document.getElementById('cmtText') as HTMLTextAreaElement).value = '';
+      replyToId = null;
+      document.getElementById('cmtReplyTo')?.classList.add('hidden');
+
+      renderComments();
+    });
+
+    renderComments();
+  });
+</script>

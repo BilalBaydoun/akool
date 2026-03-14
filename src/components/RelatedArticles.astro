@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  currentId: string;
+  currentTag: string;
+}
+
+const { currentId, currentTag } = Astro.props;
+
+const allArticles = await getCollection('articles');
+const otherArticles = allArticles
+  .filter((a) => a.id !== currentId)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Prioritize same tag, then others
+const sameTag = otherArticles.filter((a) => a.data.tagFilter === currentTag);
+const diffTag = otherArticles.filter((a) => a.data.tagFilter !== currentTag);
+const related = [...sameTag, ...diffTag].slice(0, 3);
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+---
+
+{related.length > 0 && (
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">📚 مقالات ذات صلة</h2>
+      </div>
+
+      <div class="blog-grid related-grid">
+        {related.map((article) => (
+          <a href={`/articles/${article.id}`} class="blog-card">
+            <div class="blog-card-body">
+              <div class="blog-meta">
+                <span class="blog-tag">{article.data.tag}</span>
+                <span class="blog-date">{formatDate(article.data.date)}</span>
+              </div>
+              <h3 class="blog-title">{article.data.title}</h3>
+              <span class="blog-read-btn">اقرأ المقال</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .related-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+</style>

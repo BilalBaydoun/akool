@@ -1,0 +1,139 @@
+---
+---
+
+<div id="cookie-consent" class="cookie-banner" role="dialog" aria-label="إشعار ملفات تعريف الارتباط">
+  <div class="cookie-content">
+    <p class="cookie-text">
+      نستخدم ملفات تعريف الارتباط (cookies) لتحسين تجربتك وعرض الإعلانات. باستمرارك في التصفح، فإنك توافق على استخدامها.
+    </p>
+    <div class="cookie-actions">
+      <button id="cookie-accept" class="cookie-btn accept">موافق</button>
+      <a href="/privacy" class="cookie-btn learn-more">معرفة المزيد</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    background: var(--text, #1C1B18);
+    color: #fff;
+    border-radius: var(--radius, 14px) var(--radius, 14px) 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+    padding: 1.25rem 1.5rem;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cookie-banner.visible {
+    transform: translateY(0);
+  }
+
+  .cookie-banner.hidden {
+    display: none;
+  }
+
+  .cookie-content {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cookie-text {
+    flex: 1;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    min-width: 240px;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .cookie-btn {
+    padding: 0.55rem 1.4rem;
+    border-radius: var(--radius-sm, 8px);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    text-decoration: none;
+    white-space: nowrap;
+    font-family: inherit;
+    line-height: 1.4;
+  }
+
+  .cookie-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .cookie-btn.accept {
+    background: var(--accent, #1A6B4A);
+    color: #fff;
+    border: none;
+  }
+
+  .cookie-btn.accept:hover {
+    background: var(--accent-hover, #1D7A54);
+  }
+
+  .cookie-btn.learn-more {
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .cookie-btn.learn-more:hover {
+    border-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  @media (max-width: 600px) {
+    .cookie-content {
+      flex-direction: column;
+      text-align: center;
+    }
+    .cookie-actions {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var banner = document.getElementById('cookie-consent');
+    var acceptBtn = document.getElementById('cookie-accept');
+
+    if (localStorage.getItem('akool-cookies-accepted') === 'true') {
+      banner.classList.add('hidden');
+      return;
+    }
+
+    // Small delay so the slide-up animation is visible
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        banner.classList.add('visible');
+      });
+    });
+
+    acceptBtn.addEventListener('click', function () {
+      localStorage.setItem('akool-cookies-accepted', 'true');
+      banner.classList.remove('visible');
+      setTimeout(function () {
+        banner.classList.add('hidden');
+      }, 400);
+    });
+  })();
+</script>

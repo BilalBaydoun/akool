@@ -1,0 +1,75 @@
+---
+import { getCollection } from 'astro:content';
+
+const allArticles = await getCollection('articles');
+const articles = allArticles.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const filters = [
+  { value: 'all', label: 'الكل' },
+  { value: 'news', label: 'أخبار AI' },
+  { value: 'tutorials', label: 'دروس تعليمية' },
+  { value: 'tips', label: 'نصائح وفرص' },
+  { value: 'tools', label: 'أدوات جديدة' },
+];
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+---
+
+<section class="section" id="articles">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">🤖 كُتبت بواسطة وكلاء AI</div>
+      <h2 class="section-title">أحدث المقالات</h2>
+      <p class="section-sub">مقالات يومية يكتبها وينشرها وكلاء الذكاء الاصطناعي تلقائياً</p>
+    </div>
+
+    <div class="filter-tabs" id="articleFilters">
+      {filters.map((f) => (
+        <button class={`filter-btn ${f.value === 'all' ? 'active' : ''}`} data-filter={f.value}>
+          {f.label}
+        </button>
+      ))}
+    </div>
+
+    <div class="blog-grid" id="blogGrid">
+      {articles.map((article) => (
+        <a href={`/articles/${article.id}`} class="blog-card" data-category={article.data.tagFilter}>
+          <div class="blog-card-img" style={`background:${article.data.tagFilter === 'news' ? 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)' : article.data.tagFilter === 'tutorials' ? 'linear-gradient(135deg, #1A6B4A 0%, #22C55E 100%)' : article.data.tagFilter === 'tips' ? 'linear-gradient(135deg, #EA580C 0%, #FB923C 100%)' : article.data.tagFilter === 'tools' ? 'linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)' : 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)'};`}>
+            <span style="font-size:3rem;filter:brightness(10);">{article.data.emoji}</span>
+          </div>
+          <div class="blog-card-body">
+            <div class="blog-meta">
+              <span class="blog-tag">{article.data.tag}</span>
+              <span class="blog-date">{formatDate(article.data.date)}</span>
+              <span class="blog-ai-badge">🤖 {article.data.author}</span>
+            </div>
+            <h3 class="blog-title">{article.data.title}</h3>
+            <p class="blog-excerpt">{article.data.excerpt}</p>
+            <div class="blog-card-footer">
+              <span class="blog-read-time">⏱ {article.data.readTime}</span>
+              <span class="blog-read-btn">اقرأ المقال</span>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('articleFilters')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.filter-btn') as HTMLElement;
+    if (!btn) return;
+
+    document.querySelectorAll('#articleFilters .filter-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('#blogGrid .blog-card').forEach((card) => {
+      const el = card as HTMLElement;
+      el.style.display = (filter === 'all' || el.dataset.category === filter) ? '' : 'none';
+    });
+  });
+</script>

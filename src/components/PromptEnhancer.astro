@@ -1,0 +1,228 @@
+---
+const useCases = [
+  { label: '📝 كتابة مقال', value: 'كتابة مقال' },
+  { label: '💻 كتابة كود', value: 'كتابة كود' },
+  { label: '🎨 تصميم صورة', value: 'تصميم صورة' },
+  { label: '📊 تحليل بيانات', value: 'تحليل بيانات' },
+];
+
+const taskTypes = [
+  { value: 'general', label: 'عام' },
+  { value: 'writing', label: 'كتابة وتحرير' },
+  { value: 'coding', label: 'برمجة وتطوير' },
+  { value: 'creative', label: 'إبداعي وفني' },
+  { value: 'analysis', label: 'تحليل وبحث' },
+  { value: 'marketing', label: 'تسويق ومحتوى' },
+];
+
+const tips = [
+  { icon: '🎯', title: 'كن محدداً', body: 'حدد بالضبط ما تريد بدلاً من الطلبات العامة' },
+  { icon: '📋', title: 'أعطِ سياقاً', body: 'اشرح الخلفية والهدف من طلبك' },
+  { icon: '🔄', title: 'حدد الشكل', body: 'اذكر كيف تريد شكل الإجابة (قائمة، جدول، مقال)' },
+  { icon: '⚡', title: 'أعطِ أمثلة', body: 'قدّم مثالاً على النتيجة المتوقعة' },
+];
+---
+
+<section class="section enhancer-section" id="enhancer">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">✨ أداة مجانية</div>
+      <h2 class="section-title">مُحسّن البرومبت</h2>
+      <p class="section-sub">اكتب برومبتك البسيط وسنحوّله إلى برومبت احترافي يعطيك نتائج أفضل</p>
+    </div>
+
+    <div class="enhancer-card">
+      <div class="enhancer-top">
+        <div>
+          <label class="enhancer-label">✏️ اكتب البرومبت الخاص بك</label>
+          <textarea class="enhancer-input" id="promptInput" rows="4" placeholder="مثال: اكتب لي مقال عن الذكاء الاصطناعي..." maxlength="2000"></textarea>
+          <div class="enhancer-meta">
+            <span id="charCount">0 / 2000</span>
+            <div class="use-case-pills">
+              {useCases.map((uc) => (
+                <button class="pill" data-usecase={uc.value}>{uc.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="enhancer-settings">
+          <label class="enhancer-label">🎯 نوع المهمة</label>
+          <select class="enhancer-select" id="taskType">
+            {taskTypes.map((t) => (
+              <option value={t.value}>{t.label}</option>
+            ))}
+          </select>
+
+          <label class="enhancer-label" style="margin-top:12px;">🌐 اللغة</label>
+          <select class="enhancer-select" id="langSelect">
+            <option value="ar">العربية</option>
+            <option value="en">الإنجليزية</option>
+            <option value="both">ثنائي اللغة</option>
+          </select>
+
+          <button class="btn-enhance" id="enhanceBtn" style="margin-top:auto;">
+            <span>✨ حسّن البرومبت</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="enhancerResult" class="hidden"></div>
+
+      <div class="prompt-tips-row">
+        {tips.map((tip) => (
+          <div class="prompt-tip-card">
+            <div class="tip-icon">{tip.icon}</div>
+            <div class="tip-title">{tip.title}</div>
+            <div class="tip-body">{tip.body}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const promptInput = document.getElementById('promptInput') as HTMLTextAreaElement;
+  const charCount = document.getElementById('charCount') as HTMLElement;
+  const enhanceBtn = document.getElementById('enhanceBtn') as HTMLButtonElement;
+  const resultDiv = document.getElementById('enhancerResult') as HTMLElement;
+  const taskType = document.getElementById('taskType') as HTMLSelectElement;
+  const langSelect = document.getElementById('langSelect') as HTMLSelectElement;
+
+  promptInput?.addEventListener('input', () => {
+    charCount.textContent = `${promptInput.value.length} / 2000`;
+  });
+
+  document.querySelectorAll('.pill[data-usecase]').forEach((pill) => {
+    pill.addEventListener('click', () => {
+      const val = (pill as HTMLElement).dataset.usecase || '';
+      promptInput.value = val + ': ';
+      promptInput.focus();
+      charCount.textContent = `${promptInput.value.length} / 2000`;
+    });
+  });
+
+  interface EnhanceTemplates {
+    [key: string]: { role: string; structure: string };
+  }
+
+  const templates: EnhanceTemplates = {
+    general: {
+      role: 'أنت مساعد ذكي ومتخصص',
+      structure: 'قدّم إجابة واضحة ومنظمة مع أمثلة عملية',
+    },
+    writing: {
+      role: 'أنت كاتب محتوى محترف ومتخصص في الكتابة الإبداعية',
+      structure: 'اكتب بأسلوب جذاب مع مقدمة قوية وعناوين فرعية وخاتمة',
+    },
+    coding: {
+      role: 'أنت مطور برمجيات خبير ومهندس برمجيات أول',
+      structure: 'قدّم كود نظيف ومعلّق مع شرح كل خطوة وأفضل الممارسات',
+    },
+    creative: {
+      role: 'أنت فنان ومصمم إبداعي متميز',
+      structure: 'كن إبداعياً ومبتكراً مع وصف تفصيلي للعناصر البصرية',
+    },
+    analysis: {
+      role: 'أنت محلل بيانات وباحث متخصص',
+      structure: 'قدّم تحليلاً منهجياً مع بيانات وإحصائيات ورسوم بيانية',
+    },
+    marketing: {
+      role: 'أنت خبير تسويق رقمي ومتخصص في صناعة المحتوى',
+      structure: 'ركّز على الجمهور المستهدف مع دعوات واضحة لاتخاذ إجراء',
+    },
+  };
+
+  function enhancePrompt(input: string, task: string, lang: string): string {
+    const t = templates[task] || templates.general;
+    const langNote =
+      lang === 'ar' ? 'أجب باللغة العربية الفصحى.' :
+      lang === 'en' ? 'Answer in English.' :
+      'أجب باللغتين العربية والإنجليزية.';
+
+    return `## الدور
+${t.role}.
+
+## المهمة
+${input}
+
+## التعليمات
+- ${t.structure}.
+- كن دقيقاً وشاملاً في إجابتك.
+- استخدم أمثلة عملية وواقعية.
+- نظّم الإجابة بعناوين واضحة ونقاط مرتّبة.
+
+## اللغة
+${langNote}
+
+## الشكل المطلوب
+قدّم الإجابة بتنسيق واضح ومنظم باستخدام العناوين والقوائم والفقرات.`;
+  }
+
+  enhanceBtn?.addEventListener('click', () => {
+    const input = promptInput.value.trim();
+    if (!input) {
+      promptInput.focus();
+      return;
+    }
+
+    const enhanced = enhancePrompt(input, taskType.value, langSelect.value);
+    const score = Math.min(95, 50 + input.length / 10);
+
+    resultDiv.classList.remove('hidden');
+    resultDiv.innerHTML = `
+      <div class="enhancer-result">
+        <div class="result-tabs">
+          <button class="result-tab active" data-tab="enhanced">البرومبت المحسّن</button>
+          <button class="result-tab" data-tab="original">الأصلي</button>
+        </div>
+        <div class="result-panel" id="panel-enhanced">
+          <div class="result-box">
+            <div class="result-label">
+              <span>✨ البرومبت المحسّن</span>
+              <button class="copy-btn" data-copy="enhanced">📋 نسخ</button>
+            </div>
+            <div class="result-text" id="enhancedText">${enhanced}</div>
+          </div>
+          <div class="improvement-score">
+            <span class="score-label">نسبة التحسين</span>
+            <div class="score-bar"><div class="score-fill" style="width:${score}%"></div></div>
+            <span class="score-num">${Math.round(score)}%</span>
+          </div>
+        </div>
+        <div class="result-panel hidden" id="panel-original">
+          <div class="result-box">
+            <div class="result-label">
+              <span>📝 البرومبت الأصلي</span>
+              <button class="copy-btn" data-copy="original">📋 نسخ</button>
+            </div>
+            <div class="result-text">${input}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    resultDiv.querySelectorAll('.result-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        resultDiv.querySelectorAll('.result-tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const tabName = (tab as HTMLElement).dataset.tab;
+        document.getElementById('panel-enhanced')?.classList.toggle('hidden', tabName !== 'enhanced');
+        document.getElementById('panel-original')?.classList.toggle('hidden', tabName !== 'original');
+      });
+    });
+
+    resultDiv.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const type = (btn as HTMLElement).dataset.copy;
+        const text = type === 'enhanced' ? enhanced : input;
+        navigator.clipboard.writeText(text);
+        btn.textContent = '✅ تم النسخ!';
+        setTimeout(() => { btn.textContent = '📋 نسخ'; }, 2000);
+      });
+    });
+
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+</script>

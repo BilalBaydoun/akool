@@ -1,0 +1,114 @@
+---
+const prompts = [
+  {
+    icon: '📝', category: 'writing', title: 'كاتب مقالات احترافي',
+    prompt: 'أنت كاتب محتوى محترف. اكتب مقالاً شاملاً عن [الموضوع] يتضمن مقدمة جذابة و5 عناوين فرعية وخاتمة مع دعوة لاتخاذ إجراء. استخدم أسلوباً بسيطاً ومباشراً.',
+    tags: ['كتابة', 'مقالات'],
+  },
+  {
+    icon: '💻', category: 'coding', title: 'مراجع كود خبير',
+    prompt: 'أنت مهندس برمجيات أول بخبرة 15 سنة. راجع الكود التالي واقترح تحسينات في الأداء والأمان وقابلية القراءة. اذكر الأولوية لكل اقتراح (عالية/متوسطة/منخفضة).',
+    tags: ['برمجة', 'مراجعة'],
+  },
+  {
+    icon: '📈', category: 'marketing', title: 'مسوّق رقمي',
+    prompt: 'أنت خبير تسويق رقمي. ضع خطة تسويقية شاملة لـ [المنتج/الخدمة] تتضمن: تحليل الجمهور المستهدف، القنوات المقترحة، أفكار المحتوى، والميزانية التقديرية.',
+    tags: ['تسويق', 'استراتيجية'],
+  },
+  {
+    icon: '🎨', category: 'creative', title: 'برومبت Midjourney احترافي',
+    prompt: 'Create a [subject] in [style] style, [lighting] lighting, [camera angle], detailed, high quality, 8k resolution --ar 16:9 --v 6',
+    tags: ['إبداعي', 'صور'],
+  },
+  {
+    icon: '📊', category: 'business', title: 'محلل أعمال',
+    prompt: 'أنت محلل أعمال استراتيجي. حلل فكرة مشروع [الوصف] من حيث: حجم السوق، المنافسين، نقاط القوة والضعف، الفرص والتهديدات (SWOT)، ونموذج الإيرادات المقترح.',
+    tags: ['أعمال', 'تحليل'],
+  },
+  {
+    icon: '🎓', category: 'writing', title: 'مبسّط مفاهيم',
+    prompt: 'اشرح [المفهوم] كما لو كنت تشرحه لطفل عمره 10 سنوات. استخدم أمثلة من الحياة اليومية وتشبيهات بسيطة. ثم اشرحه بمستوى متوسط ثم متقدم.',
+    tags: ['تعليم', 'تبسيط'],
+  },
+  {
+    icon: '📧', category: 'marketing', title: 'كاتب إيميلات تسويقية',
+    prompt: 'اكتب سلسلة من 5 إيميلات تسويقية لـ [المنتج] تبدأ بإيميل ترحيب وتنتهي بعرض خاص. كل إيميل يجب أن يكون قصيراً (150 كلمة) مع عنوان جذاب ودعوة واضحة.',
+    tags: ['تسويق', 'إيميل'],
+  },
+  {
+    icon: '🔧', category: 'coding', title: 'مولّد API',
+    prompt: 'أنت مطور backend محترف. صمم REST API لـ [المشروع] يتضمن: هيكل الـ endpoints، نماذج البيانات (schemas)، المصادقة، والتوثيق. استخدم [اللغة/الإطار].',
+    tags: ['برمجة', 'API'],
+  },
+];
+
+const filters = [
+  { value: 'all', label: 'الكل' },
+  { value: 'writing', label: 'كتابة' },
+  { value: 'coding', label: 'برمجة' },
+  { value: 'marketing', label: 'تسويق' },
+  { value: 'creative', label: 'إبداعي' },
+  { value: 'business', label: 'أعمال' },
+];
+---
+
+<section class="section section-alt" id="prompts">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">💡 جاهزة للاستخدام</div>
+      <h2 class="section-title">برومبتات مقترحة</h2>
+      <p class="section-sub">برومبتات احترافية جاهزة يمكنك نسخها واستخدامها مباشرة</p>
+    </div>
+
+    <div class="filter-tabs" id="promptFilters">
+      {filters.map((f) => (
+        <button class={`filter-btn ${f.value === 'all' ? 'active' : ''}`} data-filter={f.value}>
+          {f.label}
+        </button>
+      ))}
+    </div>
+
+    <div class="library-grid" id="promptsGrid">
+      {prompts.map((p) => (
+        <div class="lib-card" data-category={p.category}>
+          <div class="lib-icon" style="background:var(--accent-light);color:var(--accent);">
+            {p.icon}
+          </div>
+          <h3>{p.title}</h3>
+          <p style="font-size:0.82rem;direction:ltr;text-align:right;">{p.prompt}</p>
+          <div class="lib-tags">
+            {p.tags.map((tag) => <span>{tag}</span>)}
+          </div>
+          <button class="lib-link copy-prompt-btn" data-prompt={p.prompt} style="background:none;border:none;cursor:pointer;">
+            📋 نسخ البرومبت
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('promptFilters')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.filter-btn') as HTMLElement;
+    if (!btn) return;
+
+    document.querySelectorAll('#promptFilters .filter-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('#promptsGrid .lib-card').forEach((card) => {
+      const el = card as HTMLElement;
+      el.style.display = (filter === 'all' || el.dataset.category === filter) ? '' : 'none';
+    });
+  });
+
+  document.querySelectorAll('.copy-prompt-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const text = (btn as HTMLElement).dataset.prompt || '';
+      navigator.clipboard.writeText(text);
+      btn.textContent = '✅ تم النسخ!';
+      setTimeout(() => { btn.textContent = '📋 نسخ البرومبت'; }, 2000);
+    });
+  });
+</script>

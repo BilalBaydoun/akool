@@ -1,0 +1,27 @@
+<section class="newsletter-section" id="newsletter">
+  <div class="container">
+    <div class="newsletter-card">
+      <div class="newsletter-content">
+        <h3>📬 النشرة البريدية</h3>
+        <p>احصل على أهم أخبار ونصائح AI أسبوعياً</p>
+      </div>
+      <form class="newsletter-form" id="newsletterForm">
+        <input type="email" class="nl-input" placeholder="بريدك الإلكتروني" required>
+        <button type="submit" class="nl-btn">اشترك</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('newsletterForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = (e.target as HTMLFormElement).querySelector('input') as HTMLInputElement;
+    if (input.value) {
+      input.value = '';
+      const btn = (e.target as HTMLFormElement).querySelector('button') as HTMLButtonElement;
+      btn.textContent = '✅ تم الاشتراك!';
+      setTimeout(() => { btn.textContent = 'اشترك'; }, 3000);
+    }
+  });
+</script>

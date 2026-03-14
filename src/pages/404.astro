@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="404 — الصفحة غير موجودة | عَقول">
+  <Navbar />
+
+  <section class="section">
+    <div class="container">
+      <div class="enhancer-card" style="text-align:center; padding:4rem 2rem; max-width:600px; margin:0 auto;">
+        <div style="font-size:5rem; margin-bottom:1rem;">🤖</div>
+        <h1 style="font-size:2.25rem; font-weight:800; margin-bottom:0.75rem;">الصفحة غير موجودة</h1>
+        <p style="font-size:1.125rem; color:var(--text-secondary); margin-bottom:2rem;">
+          يبدو أن هذه الصفحة ضاعت في عالم الذكاء الاصطناعي
+        </p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <a href="/" class="btn-primary">العودة للرئيسية</a>
+          <a href="/#articles" class="btn-outline">تصفّح المقالات</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>

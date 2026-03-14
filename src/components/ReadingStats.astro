@@ -1,0 +1,70 @@
+---
+import { getCollection } from 'astro:content';
+
+const articles = await getCollection('articles');
+const totalArticles = articles.length;
+
+// Counts based on inline data in components
+const totalPrompts = 8;
+const totalTools = 8;
+---
+
+<div class="reading-stats">
+  <span class="stat-badge">
+    <span class="stat-icon">📄</span>
+    <span class="stat-value">{totalArticles}</span>
+    <span class="stat-label">مقال</span>
+  </span>
+  <span class="stat-divider"></span>
+  <span class="stat-badge">
+    <span class="stat-icon">💡</span>
+    <span class="stat-value">{totalPrompts}</span>
+    <span class="stat-label">برومبت</span>
+  </span>
+  <span class="stat-divider"></span>
+  <span class="stat-badge">
+    <span class="stat-icon">🛠️</span>
+    <span class="stat-value">{totalTools}</span>
+    <span class="stat-label">أداة</span>
+  </span>
+</div>
+
+<style>
+  .reading-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.9rem;
+    background: var(--surface2, #F2F0EB);
+    border: 1px solid var(--border, #E2DED6);
+    border-radius: var(--radius-sm, 8px);
+    font-size: 0.78rem;
+    color: var(--text-muted, #6B6860);
+    line-height: 1;
+  }
+
+  .stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .stat-icon {
+    font-size: 0.85rem;
+  }
+
+  .stat-value {
+    font-weight: 700;
+    color: var(--text-2, #3D3B35);
+  }
+
+  .stat-label {
+    color: var(--text-muted, #6B6860);
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--border, #E2DED6);
+  }
+</style>

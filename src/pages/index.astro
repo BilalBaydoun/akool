@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import NewsTicker from '../components/NewsTicker.astro';
+import LearnPreview from '../components/LearnPreview.astro';
+import AdSlot from '../components/AdSlot.astro';
+import BiblePreview from '../components/BiblePreview.astro';
+import ArticleGrid from '../components/ArticleGrid.astro';
+import PromptOfDay from '../components/PromptOfDay.astro';
+import PromptEnhancer from '../components/PromptEnhancer.astro';
+import ToolsGrid from '../components/ToolsGrid.astro';
+import ForumPreview from '../components/ForumPreview.astro';
+import Donate from '../components/Donate.astro';
+import Newsletter from '../components/Newsletter.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+---
+
+<BaseLayout>
+  <Navbar />
+  <SearchModal />
+  <Hero />
+  <NewsTicker />
+  <LearnPreview />
+  <BiblePreview />
+  <ArticleGrid />
+  <AdSlot type="leaderboard" />
+  <PromptEnhancer />
+  <PromptOfDay />
+  <ForumPreview />
+  <ToolsGrid />
+  <AdSlot type="rectangle" />
+  <Donate />
+  <Newsletter />
+  <Footer />
+  <ChatWidget />
+</BaseLayout>

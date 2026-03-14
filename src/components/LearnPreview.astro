@@ -1,0 +1,73 @@
+---
+import { learningPaths } from '../data/learning-paths';
+
+const levelColors: Record<string, { bg: string; text: string }> = {
+  'مبتدئ': { bg: 'var(--accent-light)', text: 'var(--accent)' },
+  'متوسط': { bg: 'var(--purple-light)', text: 'var(--purple)' },
+  'متقدم': { bg: 'var(--orange-light)', text: 'var(--orange)' },
+};
+---
+
+<section class="section" id="learn">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">🎓 تعلّم</div>
+      <h2 class="section-title">مسارات تعلّم الذكاء الاصطناعي</h2>
+      <p class="section-sub">تعلّم AI خطوة بخطوة — من المبتدئ إلى المحترف</p>
+    </div>
+
+    <div class="library-grid">
+      {learningPaths.map((path) => (
+        <a href={`/learn/${path.id}`} class="lib-card learn-card">
+          <div class="lib-icon" style={`background:${path.color};color:${path.textColor};`}>
+            {path.emoji}
+          </div>
+          <div class="learn-card-meta">
+            <span class="blog-tag" style={`background:${levelColors[path.level].bg};color:${levelColors[path.level].text};`}>
+              {path.level}
+            </span>
+            <span class="learn-stat">📚 {path.totalLessons} دروس</span>
+            <span class="learn-stat">⏱️ {path.totalDuration}</span>
+          </div>
+          <h3>{path.title}</h3>
+          <p>{path.description}</p>
+          <span class="btn-primary learn-btn">ابدأ التعلّم ←</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="load-more-wrap" style="margin-top:2rem;">
+      <a href="/learn" class="btn-load-more">عرض جميع المسارات ←</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .learn-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .learn-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  .learn-stat {
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+
+  .learn-btn {
+    display: inline-block;
+    margin-top: auto;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    text-align: center;
+    width: fit-content;
+  }
+</style>

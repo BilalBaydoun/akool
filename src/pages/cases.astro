@@ -1,0 +1,290 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import SearchModal from '../components/SearchModal.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+
+const cases = [
+  {
+    emoji: '🌐',
+    title: 'بناء موقع ويب كامل بـ AI في يوم واحد',
+    description: 'كيف استخدمنا Claude + Cursor لبناء منصة عَقول بالكامل — من الفكرة إلى 40+ صفحة في جلسة واحدة.',
+    tools: ['Claude', 'Cursor', 'Astro', 'Vercel'],
+    difficulty: 'متقدم',
+    duration: 'يوم واحد',
+    color: 'var(--accent-light)',
+    textColor: 'var(--accent)',
+    steps: [
+      'تحديد الفكرة والخطة مع AI',
+      'تصميم CSS وهيكل الصفحات',
+      'بناء 20+ مكوّن Astro',
+      'كتابة 8 مقالات بالعربي',
+      'إضافة نظام التعلّم والاختبارات',
+      'بناء 7 وكلاء AI وظيفيين',
+      'النشر على Vercel',
+    ],
+    result: 'منصة عربية كاملة بـ 40+ صفحة، 7 وكلاء AI، نظام تعلّم، منتدى — بتكلفة $0',
+    link: '/source',
+  },
+  {
+    emoji: '📧',
+    title: 'أتمتة الردود على إيميلات العملاء',
+    description: 'نظام يقرأ إيميلات العملاء ويصنّفها ويرد عليها تلقائياً باستخدام AI.',
+    tools: ['ChatGPT API', 'Zapier', 'Gmail'],
+    difficulty: 'متوسط',
+    duration: '3 ساعات',
+    color: 'var(--blue-light)',
+    textColor: 'var(--blue)',
+    steps: [
+      'ربط Gmail مع Zapier',
+      'إرسال الإيميل الوارد لـ ChatGPT API',
+      'تصنيف الإيميل: استفسار / شكوى / طلب',
+      'توليد رد مناسب بناءً على التصنيف',
+      'إرسال الرد تلقائياً أو حفظه كمسودة',
+    ],
+    result: 'توفير 2+ ساعة يومياً من الردود اليدوية — دقة 90% في التصنيف',
+  },
+  {
+    emoji: '🎨',
+    title: 'متجر تيشيرتات مصممة بـ AI',
+    description: 'كيف تبني متجراً لبيع تصاميم تيشيرتات مولّدة بالذكاء الاصطناعي على Redbubble.',
+    tools: ['Midjourney', 'Canva', 'Redbubble'],
+    difficulty: 'مبتدئ',
+    duration: '5 ساعات',
+    color: 'var(--purple-light)',
+    textColor: 'var(--purple)',
+    steps: [
+      'اختيار نيش (مثل: تصاميم عربية، قطط، فضاء)',
+      'توليد 20 تصميم بـ Midjourney',
+      'تحسين التصاميم في Canva (إزالة خلفية، إضافة نص)',
+      'رفع التصاميم على Redbubble',
+      'كتابة أوصاف وتاقات بـ ChatGPT',
+      'مشاركة على السوشيال ميديا',
+    ],
+    result: 'متجر جاهز بـ 20 تصميم — بعض البائعين يحققون 500-2000$/شهر',
+  },
+  {
+    emoji: '📹',
+    title: 'قناة يوتيوب بدون ظهور باستخدام AI',
+    description: 'إنشاء قناة يوتيوب كاملة — من السكريبت للصوت للمونتاج — كل شيء بـ AI.',
+    tools: ['ChatGPT', 'ElevenLabs', 'CapCut', 'Canva'],
+    difficulty: 'متوسط',
+    duration: 'يوم واحد',
+    color: 'var(--rose-light)',
+    textColor: 'var(--rose)',
+    steps: [
+      'اختيار نيش (مثل: حقائق، تاريخ، تقنية)',
+      'كتابة سكريبت الفيديو بـ ChatGPT',
+      'توليد الصوت بـ ElevenLabs (عربي أو إنجليزي)',
+      'تصميم صور وأغلفة بـ Canva AI',
+      'مونتاج الفيديو بـ CapCut (قوالب جاهزة)',
+      'كتابة العنوان والوصف والتاقات بـ AI',
+      'النشر والتحسين بناءً على التحليلات',
+    ],
+    result: 'فيديو احترافي في 2-3 ساعات بدلاً من يوم كامل — بدون ظهور أمام الكاميرا',
+  },
+  {
+    emoji: '🤖',
+    title: 'شات بوت لخدمة العملاء بدون كود',
+    description: 'بناء شات بوت ذكي يجيب على أسئلة العملاء 24/7 باستخدام أدوات no-code.',
+    tools: ['Voiceflow', 'ChatGPT API', 'Zapier'],
+    difficulty: 'متوسط',
+    duration: '4 ساعات',
+    color: 'var(--orange-light)',
+    textColor: 'var(--orange)',
+    steps: [
+      'تحديد أكثر 20 سؤال يطرحه العملاء',
+      'كتابة إجابات مفصّلة لكل سؤال',
+      'بناء تدفق المحادثة في Voiceflow',
+      'ربط ChatGPT للأسئلة غير المتوقعة',
+      'اختبار البوت مع 10 مستخدمين حقيقيين',
+      'تضمين البوت في الموقع',
+    ],
+    result: 'بوت يجيب على 80% من الأسئلة تلقائياً — يوفّر حاجة لموظف دعم بدوام كامل',
+  },
+  {
+    emoji: '📊',
+    title: 'تقرير تحليلي أسبوعي تلقائي',
+    description: 'نظام يجمع بيانات من Google Analytics و CRM ويولّد تقريراً تحليلياً بـ AI كل أسبوع.',
+    tools: ['Google Sheets', 'ChatGPT API', 'Make.com'],
+    difficulty: 'متقدم',
+    duration: '6 ساعات',
+    color: 'var(--accent-light)',
+    textColor: 'var(--accent)',
+    steps: [
+      'ربط Google Analytics مع Google Sheets',
+      'جمع بيانات المبيعات من CRM',
+      'إرسال البيانات لـ ChatGPT API لتحليلها',
+      'توليد تقرير بالعربي مع توصيات',
+      'إرسال التقرير تلقائياً عبر البريد كل أحد',
+    ],
+    result: 'تقرير احترافي أسبوعي في 0 دقائق عمل — بدلاً من 3+ ساعات يدوياً',
+  },
+];
+---
+
+<BaseLayout title="مشاريع عملية — عَقول" description="مشاريع حقيقية بُنيت بالذكاء الاصطناعي مع شرح خطوة بخطوة">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">🏗️ مشاريع عملية</div>
+        <h2 class="section-title">مشاريع حقيقية بُنيت بـ AI</h2>
+        <p class="section-sub">تعلّم من مشاريع حقيقية — كل مشروع مشروح خطوة بخطوة مع الأدوات المستخدمة</p>
+      </div>
+
+      <div class="cases-grid">
+        {cases.map((c) => (
+          <div class="case-card">
+            <div class="case-header" style={`background:${c.color};`}>
+              <span style="font-size:2.5rem;">{c.emoji}</span>
+              <div class="case-badges">
+                <span class="case-badge" style={`color:${c.textColor};`}>📊 {c.difficulty}</span>
+                <span class="case-badge" style={`color:${c.textColor};`}>⏱ {c.duration}</span>
+              </div>
+            </div>
+
+            <div class="case-body">
+              <h3 class="case-title">{c.title}</h3>
+              <p class="case-desc">{c.description}</p>
+
+              <div class="case-tools">
+                {c.tools.map((tool) => (
+                  <span class="case-tool">{tool}</span>
+                ))}
+              </div>
+
+              <h4 class="case-section-title">📋 الخطوات</h4>
+              <ol class="case-steps">
+                {c.steps.map((step) => (
+                  <li>{step}</li>
+                ))}
+              </ol>
+
+              <div class="case-result">
+                <strong>💡 النتيجة:</strong> {c.result}
+              </div>
+
+              {c.link && (
+                <a href={c.link} class="btn-primary" style="display:inline-flex;margin-top:1rem;padding:8px 20px;font-size:0.85rem;border-radius:50px;">
+                  شاهد المشروع ←
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- CTA -->
+      <div class="enhancer-card" style="text-align:center;margin-top:3rem;">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">💡</div>
+        <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:0.75rem;">عندك مشروع بنيته بـ AI؟</h3>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem;line-height:1.8;">شاركنا مشروعك وسنضيفه هنا مع ذكر اسمك كمساهم</p>
+        <a href="/submit" class="btn-primary" style="padding:10px 24px;font-size:0.95rem;border-radius:50px;">📤 شارك مشروعك</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+  }
+  .case-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .case-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: transparent;
+  }
+  .case-header {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .case-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+  }
+  .case-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.7);
+    padding: 3px 12px;
+    border-radius: 50px;
+  }
+  .case-body {
+    padding: 1.5rem 2rem 2rem;
+  }
+  .case-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 0.6rem;
+    line-height: 1.5;
+  }
+  .case-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .case-tools {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .case-tool {
+    background: var(--surface2);
+    color: var(--text-muted);
+    border-radius: 50px;
+    padding: 3px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .case-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  .case-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .case-steps li {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+  .case-result {
+    background: var(--accent-light);
+    border-right: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+  @media (max-width: 768px) {
+    .cases-grid { grid-template-columns: 1fr; }
+  }
+</style>

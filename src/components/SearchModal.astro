@@ -1,0 +1,336 @@
+---
+import { getCollection } from 'astro:content';
+
+const allArticles = await getCollection('articles');
+const articles = allArticles
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map((a) => ({
+    type: 'article' as const,
+    title: a.data.title,
+    desc: a.data.excerpt,
+    emoji: a.data.emoji,
+    tag: a.data.tag,
+    url: `/articles/${a.id}`,
+  }));
+
+const prompts = [
+  { title: 'كاتب مقالات احترافي', desc: 'اكتب مقالاً شاملاً عن موضوع يتضمن مقدمة جذابة وعناوين فرعية وخاتمة', emoji: '📝', tag: 'كتابة' },
+  { title: 'مراجع كود خبير', desc: 'مراجعة الكود واقتراح تحسينات في الأداء والأمان وقابلية القراءة', emoji: '💻', tag: 'برمجة' },
+  { title: 'مسوّق رقمي', desc: 'خطة تسويقية شاملة تتضمن تحليل الجمهور والقنوات والميزانية', emoji: '📈', tag: 'تسويق' },
+  { title: 'برومبت Midjourney احترافي', desc: 'توليد صور فنية مذهلة باستخدام Midjourney', emoji: '🎨', tag: 'إبداعي' },
+  { title: 'محلل أعمال', desc: 'تحليل فكرة مشروع من حيث حجم السوق والمنافسين ونموذج الإيرادات', emoji: '📊', tag: 'أعمال' },
+  { title: 'مبسّط مفاهيم', desc: 'شرح المفاهيم بمستويات مختلفة من البسيط للمتقدم', emoji: '🎓', tag: 'تعليم' },
+  { title: 'كاتب إيميلات تسويقية', desc: 'سلسلة إيميلات تسويقية من الترحيب حتى العرض الخاص', emoji: '📧', tag: 'تسويق' },
+  { title: 'مولّد API', desc: 'تصميم REST API يتضمن endpoints ونماذج بيانات ومصادقة', emoji: '🔧', tag: 'برمجة' },
+].map((p) => ({ ...p, type: 'prompt' as const, url: '/#prompts' }));
+
+const tools = [
+  { title: 'ChatGPT', desc: 'محادثة ذكية وكتابة ومساعدة في كل شيء', emoji: '💬', tag: 'محادثة', url: 'https://chat.openai.com' },
+  { title: 'Claude', desc: 'تحليل نصوص طويلة وبرمجة وكتابة احترافية', emoji: '🤖', tag: 'محادثة', url: 'https://claude.ai' },
+  { title: 'Midjourney', desc: 'توليد صور فنية مذهلة بالذكاء الاصطناعي', emoji: '🎨', tag: 'صور', url: 'https://midjourney.com' },
+  { title: 'Gemini', desc: 'نموذج Google المتقدم متعدد الوسائط', emoji: '🌟', tag: 'محادثة', url: 'https://gemini.google.com' },
+  { title: 'Suno AI', desc: 'أنشئ موسيقى وأغاني كاملة بالذكاء الاصطناعي', emoji: '🎵', tag: 'موسيقى', url: 'https://suno.ai' },
+  { title: 'Runway', desc: 'تحرير وتوليد فيديو بالذكاء الاصطناعي', emoji: '📹', tag: 'فيديو', url: 'https://runwayml.com' },
+  { title: 'Notion AI', desc: 'إدارة مشاريع وكتابة ذكية داخل Notion', emoji: '✍️', tag: 'إنتاجية', url: 'https://notion.so' },
+  { title: 'ElevenLabs', desc: 'تحويل النص إلى كلام طبيعي بأصوات متعددة', emoji: '🔊', tag: 'صوت', url: 'https://elevenlabs.io' },
+].map((t) => ({ ...t, type: 'tool' as const }));
+
+const searchIndex = [...articles, ...prompts, ...tools];
+---
+
+<div id="searchModal" class="search-modal hidden">
+  <div class="search-overlay" id="searchOverlay"></div>
+  <div class="search-container">
+    <div class="search-input-wrap">
+      <span class="search-icon-svg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" id="searchInput" class="search-input" placeholder="ابحث في المقالات والبرومبتات والأدوات..." autocomplete="off">
+      <kbd class="search-kbd">ESC</kbd>
+    </div>
+    <div class="search-results" id="searchResults">
+      <div class="search-empty" id="searchEmpty">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">🔍</div>
+        <p style="font-weight:700;margin-bottom:0.25rem;">ابدأ بالكتابة للبحث</p>
+        <p style="font-size:0.85rem;color:var(--text-light);">ابحث في المقالات والبرومبتات والأدوات</p>
+      </div>
+      <div id="searchResultsList"></div>
+      <div class="search-no-results hidden" id="searchNoResults">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">😕</div>
+        <p style="font-weight:700;margin-bottom:0.25rem;">لا توجد نتائج</p>
+        <p style="font-size:0.85rem;color:var(--text-light);">جرّب كلمات بحث مختلفة</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="search-data" type="application/json" set:html={JSON.stringify(searchIndex)} />
+
+<style>
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: min(12vh, 100px);
+    animation: searchFadeIn 0.2s ease;
+  }
+  .search-modal.hidden {
+    display: none;
+  }
+  .search-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+  .search-container {
+    position: relative;
+    width: 94%;
+    max-width: 620px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    animation: searchSlideIn 0.2s ease;
+  }
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-icon-svg {
+    color: var(--text-light);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .search-input {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 1.1rem;
+    font-family: var(--font);
+    color: var(--text);
+    outline: none;
+  }
+  .search-input::placeholder {
+    color: var(--text-light);
+  }
+  .search-kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: var(--font);
+    flex-shrink: 0;
+  }
+  .search-results {
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 8px 12px 12px;
+  }
+  .search-empty,
+  .search-no-results {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-muted);
+  }
+  .hidden {
+    display: none !important;
+  }
+
+  /* Result groups */
+  .search-group-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 10px 12px 4px;
+  }
+  .search-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease;
+  }
+  .search-item:hover,
+  .search-item:focus {
+    background: var(--accent-light);
+    outline: none;
+  }
+  .search-item-emoji {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+  }
+  .search-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .search-item-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .search-item-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .search-item-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border-radius: 50px;
+    padding: 2px 10px;
+    flex-shrink: 0;
+  }
+
+  @keyframes searchFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes searchSlideIn {
+    from { transform: translateY(-10px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+</style>
+
+<script>
+  const modal = document.getElementById('searchModal') as HTMLElement;
+  const overlay = document.getElementById('searchOverlay') as HTMLElement;
+  const input = document.getElementById('searchInput') as HTMLInputElement;
+  const resultsList = document.getElementById('searchResultsList') as HTMLElement;
+  const empty = document.getElementById('searchEmpty') as HTMLElement;
+  const noResults = document.getElementById('searchNoResults') as HTMLElement;
+
+  const rawData = document.getElementById('search-data')?.textContent || '[]';
+  const data: Array<{ type: string; title: string; desc: string; url: string; tag: string; emoji: string }> = JSON.parse(rawData);
+
+  const typeLabels: Record<string, string> = {
+    article: '📰 مقالات',
+    prompt: '💡 برومبتات',
+    tool: '🛠️ أدوات',
+  };
+
+  function openSearch() {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => input.focus(), 50);
+    input.value = '';
+    resultsList.innerHTML = '';
+    empty.classList.remove('hidden');
+    noResults.classList.add('hidden');
+  }
+
+  function closeSearch() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // Expose globally for navbar button
+  (window as any).__openSearch = openSearch;
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeSearch();
+    }
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) {
+      e.preventDefault();
+      openSearch();
+    }
+  });
+
+  // Close on overlay click
+  overlay?.addEventListener('click', closeSearch);
+
+  // Search button in navbar
+  document.getElementById('searchBtn')?.addEventListener('click', openSearch);
+
+  // Search logic
+  input?.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) {
+      resultsList.innerHTML = '';
+      empty.classList.remove('hidden');
+      noResults.classList.add('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    const matches = data.filter((item) =>
+      item.title.toLowerCase().includes(q) ||
+      item.desc.toLowerCase().includes(q) ||
+      item.tag.toLowerCase().includes(q)
+    );
+
+    if (matches.length === 0) {
+      resultsList.innerHTML = '';
+      noResults.classList.remove('hidden');
+      return;
+    }
+    noResults.classList.add('hidden');
+
+    const grouped: Record<string, typeof matches> = {};
+    matches.forEach((m) => {
+      if (!grouped[m.type]) grouped[m.type] = [];
+      grouped[m.type].push(m);
+    });
+
+    let html = '';
+    for (const type of ['article', 'prompt', 'tool']) {
+      const items = grouped[type];
+      if (!items || items.length === 0) continue;
+      html += `<div class="search-group-title">${typeLabels[type]}</div>`;
+      for (const item of items) {
+        const isExternal = item.url.startsWith('http');
+        const target = isExternal ? ' target="_blank" rel="noopener"' : '';
+        const arrow = isExternal ? '↗' : '←';
+        html += `
+          <a href="${escapeHtml(item.url)}" class="search-item"${target}>
+            <span class="search-item-emoji">${item.emoji}</span>
+            <div class="search-item-info">
+              <div class="search-item-title">${highlight(item.title, q)}</div>
+              <div class="search-item-desc">${highlight(item.desc, q)}</div>
+            </div>
+            <span class="search-item-tag">${escapeHtml(item.tag)}</span>
+          </a>`;
+      }
+    }
+    resultsList.innerHTML = html;
+  });
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function highlight(text: string, query: string): string {
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return escapeHtml(text).replace(regex, '<mark style="background:var(--accent-light);color:var(--accent);border-radius:2px;padding:0 2px;">$1</mark>');
+  }
+</script>

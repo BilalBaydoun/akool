@@ -1,0 +1,335 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import ChatWidget from '../../components/ChatWidget.astro';
+import SearchModal from '../../components/SearchModal.astro';
+import { threads } from '../../data/forum-threads';
+
+export function getStaticPaths() {
+  return threads.map((thread) => ({
+    params: { id: thread.id.toString() },
+    props: { thread },
+  }));
+}
+
+const { thread } = Astro.props;
+---
+
+<BaseLayout title={`${thread.title} — منتدى عَقول`}>
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:800px;">
+
+      <!-- Back -->
+      <a href="/forum" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:0.9rem;margin-bottom:2rem;">
+        → العودة للمنتدى
+      </a>
+
+      <!-- Thread Header -->
+      <div class="thread-header-card">
+        <div class="thread-header-meta">
+          <span class="blog-tag">{thread.topic}</span>
+          <span style="font-size:0.82rem;color:var(--text-light);">{thread.time}</span>
+        </div>
+        <h1 class="thread-header-title">{thread.title}</h1>
+        <div class="thread-header-author">
+          <div class="comment-avatar user" style="width:40px;height:40px;font-size:1rem;">{thread.author[0]}</div>
+          <div>
+            <span style="font-weight:700;font-size:0.95rem;">{thread.author}</span>
+            <span style="font-size:0.78rem;color:var(--text-light);display:block;">{thread.time}</span>
+          </div>
+        </div>
+        <p class="thread-header-body">{thread.text}</p>
+      </div>
+
+      <!-- Replies -->
+      <div style="margin-top:2rem;">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;" id="replyCount">
+          💬 {thread.replies.length} رد
+        </h3>
+
+        <div class="comments-feed" id="repliesFeed">
+          {thread.replies.map((reply) => (
+            <div class={`comment-thread ${reply.isAi ? '' : ''}`}>
+              <div class={`comment-item ${reply.isAi ? 'ai-reply-item' : ''}`}>
+                <div class="comment-header">
+                  <div class={`comment-avatar ${reply.isAi ? 'ai' : 'user'}`}>
+                    {reply.isAi ? '🤖' : reply.author[0]}
+                  </div>
+                  <span class="comment-author">{reply.author}</span>
+                  {reply.isAi && <span class="ai-label">رد آلي</span>}
+                  <span class="comment-time">{reply.time}</span>
+                  {!reply.isAi && (
+                    <button class="reply-quote-btn" data-author={reply.author} data-text={reply.text.slice(0, 80)}>
+                      ↩️ رد
+                    </button>
+                  )}
+                </div>
+                <p class="comment-text">{reply.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Reply Form -->
+      <div class="comment-form-card" style="margin-top:2rem;" id="replyFormCard">
+        <h3 class="comment-form-title">✍️ اكتب ردك</h3>
+
+        <div id="replyQuote" class="hidden" style="margin-bottom:12px;padding:10px 14px;background:var(--accent-light);border-radius:var(--radius-sm);font-size:0.82rem;display:flex;justify-content:space-between;align-items:center;">
+          <span>↩️ رد على: <strong id="replyQuoteName"></strong> — <em id="replyQuoteText"></em></span>
+          <button id="cancelQuote" style="background:none;border:none;cursor:pointer;color:var(--rose);font-size:0.82rem;">✕</button>
+        </div>
+
+        <div id="guestFields" class="form-row" style="margin-bottom:12px;">
+          <input type="text" class="form-input" id="replyName" placeholder="اسمك">
+          <input type="email" class="form-input" id="replyEmail" placeholder="بريدك (اختياري)">
+        </div>
+        <div id="loggedInUser" class="hidden" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);">
+          <div id="replyUserAvatar" style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;">👤</div>
+          <span id="replyUserName" style="font-weight:700;font-size:0.9rem;"></span>
+        </div>
+
+        <textarea class="form-textarea" id="replyText" rows="3" placeholder="اكتب ردك هنا..."></textarea>
+        <div class="comment-form-footer">
+          <span class="ai-reply-note">🤖 ريم قد ترد أيضاً</span>
+          <button class="btn-comment" id="submitReply">إرسال الرد</button>
+        </div>
+        <div id="replyStatus" class="hidden" style="margin-top:10px;padding:10px 14px;border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .thread-header-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+  }
+  .thread-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .thread-header-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  .thread-header-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .thread-header-body {
+    font-size: 1rem;
+    line-height: 1.85;
+    color: var(--text-2);
+  }
+  .reply-quote-btn {
+    margin-right: auto;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .reply-quote-btn:hover { text-decoration: underline; }
+</style>
+
+<script>
+  const threadId = window.location.pathname.split('/').pop() || '';
+  const REPLIES_KEY = `akool-forum-replies-${threadId}`;
+  let quoteAuthor = '';
+
+  // Auto-fill saved name
+  try {
+    const savedName = localStorage.getItem('akool-guest-name') || '';
+    if (savedName) (document.getElementById('replyName') as HTMLInputElement).value = savedName;
+  } catch {}
+
+  // Check logged in user
+  async function checkUser() {
+    try {
+      const mod = await import('../../lib/supabase');
+      const sb = mod.supabase;
+      if (!sb.supabaseUrl) return;
+      const { data: { user } } = await sb.auth.getUser();
+      if (user) {
+        const { data: profile } = await sb.from('profiles').select('username').eq('id', user.id).single();
+        if (profile) {
+          document.getElementById('guestFields')?.classList.add('hidden');
+          const loggedIn = document.getElementById('loggedInUser') as HTMLElement;
+          loggedIn.classList.remove('hidden');
+          loggedIn.style.display = 'flex';
+          (document.getElementById('replyUserName') as HTMLElement).textContent = profile.username;
+          (document.getElementById('replyUserAvatar') as HTMLElement).textContent = profile.username[0];
+          (document.getElementById('replyName') as HTMLInputElement).value = profile.username;
+          (document.getElementById('replyEmail') as HTMLInputElement).value = user.email || '';
+        }
+      }
+    } catch {}
+  }
+  checkUser();
+
+  // Quote reply
+  document.querySelectorAll('.reply-quote-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const author = (btn as HTMLElement).dataset.author || '';
+      const text = (btn as HTMLElement).dataset.text || '';
+      quoteAuthor = author;
+      (document.getElementById('replyQuoteName') as HTMLElement).textContent = author;
+      (document.getElementById('replyQuoteText') as HTMLElement).textContent = text + '...';
+      document.getElementById('replyQuote')?.classList.remove('hidden');
+      (document.getElementById('replyText') as HTMLTextAreaElement).focus();
+    });
+  });
+
+  document.getElementById('cancelQuote')?.addEventListener('click', () => {
+    quoteAuthor = '';
+    document.getElementById('replyQuote')?.classList.add('hidden');
+  });
+
+  // Load saved replies
+  function getSavedReplies(): Array<{ author: string; text: string; time: string; isAi: boolean }> {
+    try { return JSON.parse(localStorage.getItem(REPLIES_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function renderSavedReplies() {
+    const feed = document.getElementById('repliesFeed') as HTMLElement;
+    const saved = getSavedReplies();
+    const countEl = document.getElementById('replyCount') as HTMLElement;
+
+    saved.forEach(reply => {
+      const div = document.createElement('div');
+      div.className = 'comment-thread';
+      div.innerHTML = `
+        <div class="comment-item ${reply.isAi ? 'ai-reply-item' : ''}">
+          <div class="comment-header">
+            <div class="comment-avatar ${reply.isAi ? 'ai' : 'user'}">${reply.isAi ? '🤖' : reply.author[0]}</div>
+            <span class="comment-author">${reply.author}</span>
+            ${reply.isAi ? '<span class="ai-label">رد آلي</span>' : ''}
+            <span class="comment-time">${reply.time}</span>
+          </div>
+          <p class="comment-text">${reply.text}</p>
+        </div>
+      `;
+      feed.appendChild(div);
+    });
+
+    const totalReplies = feed.querySelectorAll('.comment-thread').length;
+    countEl.textContent = `💬 ${totalReplies} رد`;
+  }
+  renderSavedReplies();
+
+  // Submit reply
+  document.getElementById('submitReply')?.addEventListener('click', async () => {
+    const name = (document.getElementById('replyName') as HTMLInputElement).value.trim() || 'زائر';
+    // Save name for reuse across the site
+    try {
+      localStorage.setItem('akool-guest-name', name);
+    } catch {}
+    const text = (document.getElementById('replyText') as HTMLTextAreaElement).value.trim();
+    const statusEl = document.getElementById('replyStatus') as HTMLElement;
+
+    if (!text) return;
+
+    const quotePrefix = quoteAuthor ? `↩️ رداً على ${quoteAuthor}: ` : '';
+    const fullText = quotePrefix + text;
+
+    // Save user reply
+    const saved = getSavedReplies();
+    saved.push({ author: name, text: fullText, time: 'الآن', isAi: false });
+
+    // Generate AI reply from ريم
+    let aiReply = '';
+    try {
+      const res = await fetch('/api/moderate-comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, comment: text, articleTitle: document.title }),
+      });
+      const data = await res.json();
+      if (data.approved && data.aiReply) {
+        aiReply = data.aiReply;
+      }
+    } catch {
+      const replies = [
+        `شكراً ${name} على مشاركتك! 🌟`,
+        `نقطة رائعة ${name}! 👋`,
+        `أهلاً ${name}! شكراً لإثراء النقاش 🤖`,
+      ];
+      aiReply = replies[Math.floor(Math.random() * replies.length)];
+    }
+
+    if (aiReply) {
+      saved.push({ author: 'ريم — مديرة المنتدى', text: aiReply, time: 'بعد لحظات', isAi: true });
+    }
+
+    localStorage.setItem(REPLIES_KEY, JSON.stringify(saved));
+
+    // Clear form
+    (document.getElementById('replyText') as HTMLTextAreaElement).value = '';
+    quoteAuthor = '';
+    document.getElementById('replyQuote')?.classList.add('hidden');
+
+    statusEl.textContent = '✅ تم نشر ردك!';
+    statusEl.style.background = 'var(--accent-light)';
+    statusEl.style.color = 'var(--accent)';
+    statusEl.classList.remove('hidden');
+    setTimeout(() => statusEl.classList.add('hidden'), 4000);
+
+    if (typeof window.__addNotification === 'function') {
+      window.__addNotification('💬 تم نشر ردك في المنتدى', window.location.href);
+    }
+
+    // Re-render
+    const feed = document.getElementById('repliesFeed') as HTMLElement;
+    // Remove previously rendered saved replies and re-render all
+    feed.querySelectorAll('.saved-reply').forEach(el => el.remove());
+
+    const newReplies = getSavedReplies();
+    const countEl = document.getElementById('replyCount') as HTMLElement;
+
+    // Add only the new ones
+    newReplies.slice(-2).forEach(reply => {
+      const div = document.createElement('div');
+      div.className = 'comment-thread saved-reply';
+      div.innerHTML = `
+        <div class="comment-item ${reply.isAi ? 'ai-reply-item' : ''}">
+          <div class="comment-header">
+            <div class="comment-avatar ${reply.isAi ? 'ai' : 'user'}">${reply.isAi ? '🤖' : reply.author[0]}</div>
+            <span class="comment-author">${reply.author}</span>
+            ${reply.isAi ? '<span class="ai-label">رد آلي</span>' : ''}
+            <span class="comment-time">${reply.time}</span>
+          </div>
+          <p class="comment-text">${reply.text}</p>
+        </div>
+      `;
+      feed.appendChild(div);
+    });
+
+    const total = feed.querySelectorAll('.comment-thread').length;
+    countEl.textContent = `💬 ${total} رد`;
+
+    // Scroll to new reply
+    feed.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+</script>

@@ -1,0 +1,22 @@
+---
+/**
+ * Notifications Component
+ *
+ * The notification bell, badge, and dropdown panel are embedded directly
+ * in Navbar.astro for positioning purposes. This file serves as the
+ * reference for the notifications system API.
+ *
+ * localStorage key: "akool-notifications"
+ * Each notification: { id: string, text: string, time: string, read: boolean, link: string }
+ *
+ * To add a notification from any script:
+ *   window.__addNotification("تم الرد على تعليقك", "/articles/my-article#comments")
+ *
+ * Sample notifications:
+ *   - "تم الرد على تعليقك"
+ *   - "تمت الموافقة على مشاركتك"
+ *   - "مقال جديد: عنوان المقال"
+ *   - "تم حفظ مقالك في المفضلة"
+ */
+---
+<!-- Notifications UI is rendered inside Navbar.astro -->

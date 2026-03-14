@@ -1,0 +1,364 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import ChatWidget from '../../components/ChatWidget.astro';
+import SearchModal from '../../components/SearchModal.astro';
+---
+
+<BaseLayout title="المدقق اللغوي — عَقول" description="تحقق من صحة النص العربي إملائياً ونحوياً بمساعدة AI">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">✍️ أداة مجانية</div>
+        <h2 class="section-title">المدقق اللغوي العربي</h2>
+        <p class="section-sub">تحقق من صحة النص العربي إملائياً ونحوياً بمساعدة AI</p>
+      </div>
+
+      <!-- Spell Check Tool -->
+      <div class="enhancer-card" style="margin-bottom:3rem;">
+        <div class="enhancer-top" style="flex-direction:column;">
+          <div style="width:100%;">
+            <label class="enhancer-label">📝 النص العربي</label>
+            <textarea class="enhancer-input" id="spellInput" rows="8" placeholder="الصق النص العربي هنا..." maxlength="5000"></textarea>
+            <div class="enhancer-meta">
+              <span id="spellCharCount">0 / 5000</span>
+            </div>
+          </div>
+
+          <button class="btn-enhance" id="spellCheckBtn" style="margin-top:16px;align-self:flex-start;">
+            <span id="btnLabel">✍️ تدقيق النص</span>
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div id="spellResult" class="hidden" style="margin-top:24px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .spell-result-area {
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .spell-score-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--bg-2, #f9f9fb);
+    border-radius: 12px;
+  }
+
+  .spell-score-num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .spell-score-bar-wrap {
+    flex: 1;
+  }
+
+  .score-label {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .score-bar {
+    height: 10px;
+    background: var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.6s ease;
+  }
+
+  .spell-summary {
+    font-size: 0.95rem;
+    color: var(--text-2);
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: var(--bg-2, #f9f9fb);
+    border-radius: 10px;
+    line-height: 1.8;
+  }
+
+  .spell-errors-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-1);
+  }
+
+  .spell-error-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--bg-2, #f9f9fb);
+    margin-bottom: 8px;
+    border-right: 4px solid var(--accent, #1A6B4A);
+    flex-wrap: wrap;
+  }
+
+  .spell-error-card .error-original {
+    font-weight: 700;
+    color: #E11D48;
+    text-decoration: line-through;
+    font-size: 0.95rem;
+  }
+
+  .spell-error-card .error-arrow {
+    color: var(--text-light, #999);
+    font-size: 1.1rem;
+  }
+
+  .spell-error-card .error-correction {
+    font-weight: 700;
+    color: var(--accent, #1A6B4A);
+    font-size: 0.95rem;
+  }
+
+  .spell-error-card .error-type {
+    margin-inline-start: auto;
+    font-size: 0.78rem;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: var(--accent-bg, #e8f5ec);
+    color: var(--accent, #1A6B4A);
+    font-weight: 600;
+  }
+
+  .spell-copy-btn {
+    margin-top: 20px;
+    padding: 10px 24px;
+    background: var(--accent, #1A6B4A);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .spell-copy-btn:hover {
+    opacity: 0.85;
+  }
+
+  .spell-no-errors {
+    text-align: center;
+    padding: 24px;
+    font-size: 1.1rem;
+    color: var(--accent, #1A6B4A);
+  }
+
+  .spell-loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 1rem;
+    color: var(--text-2);
+  }
+
+  .spell-loading .spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent, #1A6B4A);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+  const input = document.getElementById('spellInput') as HTMLTextAreaElement;
+  const charCount = document.getElementById('spellCharCount') as HTMLElement;
+  const checkBtn = document.getElementById('spellCheckBtn') as HTMLButtonElement;
+  const btnLabel = document.getElementById('btnLabel') as HTMLElement;
+  const resultDiv = document.getElementById('spellResult') as HTMLElement;
+
+  input?.addEventListener('input', () => {
+    charCount.textContent = `${input.value.length} / 5000`;
+  });
+
+  // Local fallback checks (mirrors the server fallback)
+  function localFallbackCheck(text: string) {
+    interface FallbackError {
+      original: string;
+      correction: string;
+      type: string;
+    }
+    const errors: FallbackError[] = [];
+
+    const commonMistakes: [RegExp, string, string][] = [
+      [/إنشاءالله/g, 'إنشاءالله', 'إن شاء الله'],
+      [/انشاء الله/g, 'انشاء الله', 'إن شاء الله'],
+      [/ان شاء الله/g, 'ان شاء الله', 'إن شاء الله'],
+      [/الذى/g, 'الذى', 'الذي'],
+      [/اللذي/g, 'اللذي', 'الذي'],
+      [/هاذا/g, 'هاذا', 'هذا'],
+      [/هاذه/g, 'هاذه', 'هذه'],
+      [/لاكن/g, 'لاكن', 'لكن'],
+      [/داءما/g, 'داءما', 'دائما'],
+      [/شيئ\b/g, 'شيئ', 'شيء'],
+      [/مسؤل/g, 'مسؤل', 'مسؤول'],
+      [/إستخدام/g, 'إستخدام', 'استخدام'],
+      [/إستطاع/g, 'إستطاع', 'استطاع'],
+      [/إكتشاف/g, 'إكتشاف', 'اكتشاف'],
+      [/إبتكار/g, 'إبتكار', 'ابتكار'],
+      [/فى\b/g, 'فى', 'في'],
+      [/إلي\b/g, 'إلي', 'إلى'],
+    ];
+
+    for (const [pattern, original, correction] of commonMistakes) {
+      if (pattern.test(text)) {
+        errors.push({ original, correction, type: 'إملائي' });
+      }
+    }
+
+    if (/[،.؟!][^\s\n]/.test(text)) {
+      errors.push({
+        original: 'علامات ترقيم ملتصقة',
+        correction: 'أضف مسافة بعد علامات الترقيم',
+        type: 'أسلوبي',
+      });
+    }
+
+    const score = Math.max(1, 10 - errors.length);
+    const summary = errors.length === 0
+      ? 'لم يتم العثور على أخطاء واضحة. النص يبدو سليماً.'
+      : `تم العثور على ${errors.length} ${errors.length === 1 ? 'خطأ' : 'أخطاء'} في النص.`;
+
+    return { errors, score, summary };
+  }
+
+  function getScoreColor(score: number): string {
+    if (score >= 8) return '#1A6B4A';
+    if (score >= 5) return '#D97706';
+    return '#E11D48';
+  }
+
+  function getCorrectedText(originalText: string, errors: { original: string; correction: string }[]): string {
+    let corrected = originalText;
+    for (const err of errors) {
+      if (err.original && err.correction && err.original !== err.correction) {
+        corrected = corrected.replace(new RegExp(err.original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), err.correction);
+      }
+    }
+    return corrected;
+  }
+
+  function renderResult(data: { errors: { original: string; correction: string; type: string }[]; score: number; summary: string }, originalText: string) {
+    const scoreColor = getScoreColor(data.score);
+    const scorePercent = (data.score / 10) * 100;
+    const correctedText = getCorrectedText(originalText, data.errors);
+
+    let errorsHTML = '';
+    if (data.errors.length > 0) {
+      errorsHTML = `
+        <div class="spell-errors-title">الأخطاء المكتشفة (${data.errors.length})</div>
+        ${data.errors.map((e) => `
+          <div class="spell-error-card">
+            <span class="error-original">${e.original}</span>
+            <span class="error-arrow">&larr;</span>
+            <span class="error-correction">${e.correction}</span>
+            <span class="error-type">${e.type}</span>
+          </div>
+        `).join('')}
+      `;
+    } else {
+      errorsHTML = '<div class="spell-no-errors">&#x2705; النص سليم ولا يحتوي على أخطاء واضحة</div>';
+    }
+
+    resultDiv.innerHTML = `
+      <div class="spell-result-area">
+        <div class="spell-score-section">
+          <div class="spell-score-num" style="color:${scoreColor};">${data.score}/10</div>
+          <div class="spell-score-bar-wrap">
+            <span class="score-label">جودة النص</span>
+            <div class="score-bar"><div class="score-fill" style="width:${scorePercent}%;background:${scoreColor};"></div></div>
+          </div>
+        </div>
+        <div class="spell-summary">${data.summary}</div>
+        ${errorsHTML}
+        ${data.errors.length > 0 ? `<button class="spell-copy-btn" id="copyCorrected">&#x1F4CB; نسخ النص المصحح</button>` : ''}
+      </div>
+    `;
+
+    // Copy corrected text handler
+    document.getElementById('copyCorrected')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(correctedText);
+      const btn = document.getElementById('copyCorrected') as HTMLElement;
+      btn.textContent = '✅ تم النسخ!';
+      setTimeout(() => { btn.innerHTML = '&#x1F4CB; نسخ النص المصحح'; }, 2000);
+    });
+  }
+
+  checkBtn?.addEventListener('click', async () => {
+    const text = input.value.trim();
+    if (!text) {
+      input.focus();
+      return;
+    }
+
+    // Show loading
+    resultDiv.classList.remove('hidden');
+    resultDiv.innerHTML = `
+      <div class="spell-loading">
+        <div class="spinner"></div>
+        <div>جارٍ تدقيق النص...</div>
+      </div>
+    `;
+    checkBtn.disabled = true;
+    btnLabel.textContent = '⏳ جارٍ التدقيق...';
+
+    try {
+      const res = await fetch('/api/check-arabic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) throw new Error('API error');
+
+      const data = await res.json();
+      renderResult(data, text);
+    } catch {
+      // Fallback to local checks
+      const data = localFallbackCheck(text);
+      renderResult(data, text);
+    }
+
+    checkBtn.disabled = false;
+    btnLabel.textContent = '✍️ تدقيق النص';
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+</script>

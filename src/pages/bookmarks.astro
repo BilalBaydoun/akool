@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+---
+
+<BaseLayout title="المقالات المحفوظة — عَقول" description="مقالاتك المحفوظة في عَقول">
+  <Navbar />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:800px;">
+      <div class="section-header">
+        <h2 class="section-title">🔖 المقالات المحفوظة</h2>
+        <p class="section-sub">المقالات التي قمت بحفظها للقراءة لاحقاً</p>
+      </div>
+
+      <!-- Bookmarks list -->
+      <div id="bookmarks-list"></div>
+
+      <!-- Empty state -->
+      <div id="bookmarks-empty" style="display:none;text-align:center;padding:4rem 1rem;">
+        <div style="font-size:4rem;margin-bottom:1rem;">📭</div>
+        <h3 style="font-size:1.3rem;font-weight:700;margin-bottom:0.75rem;color:var(--text);">لا توجد مقالات محفوظة</h3>
+        <p style="color:var(--text-muted);margin-bottom:2rem;line-height:1.8;">يمكنك حفظ المقالات بالضغط على زر "حفظ المقال" في صفحة أي مقال</p>
+        <a href="/articles" class="btn-primary" style="padding:12px 28px;font-size:0.95rem;">تصفح المقالات</a>
+      </div>
+
+      <!-- Clear all button -->
+      <div id="bookmarks-actions" style="display:none;text-align:center;margin-top:2rem;">
+        <button id="clear-bookmarks" class="btn-outline" style="padding:10px 24px;font-size:0.9rem;color:var(--danger, #e53e3e);">
+          🗑️ مسح جميع المحفوظات
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .bookmark-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+    gap: 1rem;
+  }
+  .bookmark-item:hover {
+    border-color: var(--accent);
+  }
+  .bookmark-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.6;
+    flex: 1;
+  }
+  .bookmark-link:hover {
+    color: var(--accent);
+  }
+  .bookmark-remove {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm, 6px);
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .bookmark-remove:hover {
+    color: var(--danger, #e53e3e);
+    border-color: var(--danger, #e53e3e);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const listEl = document.getElementById('bookmarks-list');
+    const emptyEl = document.getElementById('bookmarks-empty');
+    const actionsEl = document.getElementById('bookmarks-actions');
+    const clearBtn = document.getElementById('clear-bookmarks');
+
+    function getBookmarks(): Array<{ id: string; title: string }> {
+      try {
+        return JSON.parse(localStorage.getItem('akool-bookmarks') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBookmarks(bookmarks: Array<{ id: string; title: string }>) {
+      localStorage.setItem('akool-bookmarks', JSON.stringify(bookmarks));
+    }
+
+    function render() {
+      if (!listEl || !emptyEl || !actionsEl) return;
+      const bookmarks = getBookmarks();
+
+      if (bookmarks.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'block';
+        actionsEl.style.display = 'none';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      actionsEl.style.display = 'block';
+
+      listEl.innerHTML = bookmarks.map((b) => `
+        <div class="bookmark-item">
+          <a class="bookmark-link" href="/articles/${b.id}">${b.title}</a>
+          <button class="bookmark-remove" data-id="${b.id}">حذف</button>
+        </div>
+      `).join('');
+
+      listEl.querySelectorAll('.bookmark-remove').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = (btn as HTMLElement).dataset.id;
+          const updated = getBookmarks().filter((b) => b.id !== id);
+          saveBookmarks(updated);
+          render();
+        });
+      });
+    }
+
+    clearBtn?.addEventListener('click', () => {
+      if (confirm('هل أنت متأكد من مسح جميع المحفوظات؟')) {
+        localStorage.removeItem('akool-bookmarks');
+        render();
+      }
+    });
+
+    render();
+  });
+</script>

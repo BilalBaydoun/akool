@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import SearchModal from '../../components/SearchModal.astro';
+import { learningPaths } from '../../data/learning-paths';
+
+export function getStaticPaths() {
+  return learningPaths.map((p) => ({ params: { path: p.id }, props: { path: p } }));
+}
+
+const { path } = Astro.props;
+---
+
+<BaseLayout title={`${path.title} — عَقول`}>
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:700px;">
+      <a href="/learn" style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:0.9rem;margin-bottom:2rem;">→ جميع المسارات</a>
+
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div style="font-size:3rem;margin-bottom:0.5rem;">{path.emoji}</div>
+        <h1 style="font-size:1.6rem;font-weight:900;margin-bottom:0.5rem;">{path.title}</h1>
+        <div style="display:flex;gap:12px;justify-content:center;font-size:0.85rem;color:var(--text-muted);">
+          <span class="blog-tag" style={`background:${path.color};color:${path.textColor};`}>{path.level}</span>
+          <span>📚 {path.lessons.length} دروس</span>
+          <span>⏱ {path.totalDuration}</span>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div style="margin-bottom:2rem;">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;">
+          <span id="progressLabel">0 / {path.lessons.length} دروس</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+          <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#2ECC71);border-radius:4px;transition:width 0.5s;"></div>
+        </div>
+      </div>
+
+      <!-- Lessons -->
+      <div style="display:flex;flex-direction:column;gap:12px;" id="lessonsList">
+        {path.lessons.map((lesson, i) => (
+          <a href={`/learn/${path.id}/${i}`} class="lesson-card" data-lesson={i} data-path={path.id}>
+            <div class="lesson-num" data-status="locked">{i + 1}</div>
+            <div class="lesson-info">
+              <div class="lesson-title">{lesson.emoji} {lesson.title}</div>
+              <div class="lesson-meta">⏱ {lesson.duration} • {lesson.quiz.length} أسئلة</div>
+            </div>
+            <div class="lesson-status" id={`status-${i}`}>🔒</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .lesson-card {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-lg);
+    text-decoration: none; color: inherit; transition: all 0.2s;
+  }
+  .lesson-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+  .lesson-card.completed { border-color: var(--accent); }
+  .lesson-card.locked { opacity: 0.5; pointer-events: none; }
+  .lesson-num {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface2); color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 0.95rem; flex-shrink: 0;
+  }
+  .lesson-card.completed .lesson-num { background: var(--accent); color: white; }
+  .lesson-info { flex: 1; }
+  .lesson-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
+  .lesson-meta { font-size: 0.78rem; color: var(--text-muted); }
+  .lesson-status { font-size: 1.1rem; flex-shrink: 0; }
+</style>
+
+<script>
+  const pathId = window.location.pathname.split('/').filter(Boolean).pop() || '';
+  const key = `akool-learn-${pathId}`;
+
+  interface LearnProgress {
+    completedLessons: number[];
+    scores: Record<number, number>;
+  }
+
+  let progress: LearnProgress = { completedLessons: [], scores: {} };
+  try { const s = localStorage.getItem(key); if (s) progress = JSON.parse(s); } catch {}
+
+  const cards = document.querySelectorAll('.lesson-card');
+  const total = cards.length;
+  const completed = progress.completedLessons.length;
+
+  cards.forEach((card, i) => {
+    const el = card as HTMLElement;
+    const statusEl = document.getElementById(`status-${i}`);
+    const isCompleted = progress.completedLessons.includes(i);
+    const isUnlocked = i === 0 || progress.completedLessons.includes(i - 1);
+
+    if (isCompleted) {
+      el.classList.add('completed');
+      if (statusEl) statusEl.textContent = '✅';
+    } else if (isUnlocked) {
+      if (statusEl) statusEl.textContent = '→';
+    } else {
+      el.classList.add('locked');
+    }
+  });
+
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const bar = document.getElementById('progressBar') as HTMLElement;
+  const label = document.getElementById('progressLabel') as HTMLElement;
+  const pctEl = document.getElementById('progressPct') as HTMLElement;
+  if (bar) bar.style.width = pct + '%';
+  if (label) label.textContent = `${completed} / ${total} دروس`;
+  if (pctEl) pctEl.textContent = pct + '%';
+</script>

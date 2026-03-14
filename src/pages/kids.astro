@@ -1,0 +1,353 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+
+const lessons = [
+  {
+    emoji: '🤔',
+    title: 'ما هو الذكاء الاصطناعي؟',
+    age: '8+',
+    color: '#E6F4EE',
+    textColor: '#1A6B4A',
+    content: 'تخيّل أن عندك روبوت صديق يقدر يتعلّم أشياء جديدة كل يوم! الذكاء الاصطناعي هو مثل دماغ إلكتروني يقدر يتعلّم ويفهم ويساعدنا. لكنه ما يفكر مثلنا بالضبط — هو يتعلّم من أمثلة كثيرة جداً ويبحث عن أنماط فيها.',
+    funFact: 'هل تعلم؟ AI يقدر يتعرّف على صورة قطة من بين مليون صورة في أقل من ثانية! 🐱',
+  },
+  {
+    emoji: '🧠',
+    title: 'كيف يتعلّم الكمبيوتر؟',
+    age: '9+',
+    color: '#DBEAFE',
+    textColor: '#1D4ED8',
+    content: 'تخيّل أنك تريد تعلّم الكمبيوتر الفرق بين القطط والكلاب. أنت تريه آلاف الصور وتقول له: "هذه قطة، هذا كلب". بعد ما يشوف صور كثيرة، يبدأ يلاحظ الفروقات بنفسه! هذا يُسمى "التعلّم الآلي" (Machine Learning).',
+    funFact: 'هل تعلم؟ ChatGPT قرأ تقريباً كل الكتب والمواقع على الإنترنت ليتعلّم! 📚',
+  },
+  {
+    emoji: '💬',
+    title: 'كيف يتكلّم ChatGPT؟',
+    age: '10+',
+    color: '#EDE9FE',
+    textColor: '#7C3AED',
+    content: 'ChatGPT مثل لعبة تخمين الكلمة التالية! عندما تسأله سؤالاً، هو يفكر: "ما أفضل كلمة أحطها هنا؟" ثم الكلمة اللي بعدها، واللي بعدها... حتى يبني جملة كاملة. هو ما يفهم فعلاً مثلنا، لكنه ممتاز في ترتيب الكلمات بطريقة منطقية.',
+    funFact: 'هل تعلم؟ كلمة "برومبت" تعني الأمر أو السؤال الذي تكتبه لـ AI! ✍️',
+  },
+  {
+    emoji: '🎨',
+    title: 'كيف يرسم AI صوراً؟',
+    age: '10+',
+    color: '#FFF7ED',
+    textColor: '#EA580C',
+    content: 'تخيّل أن AI درس ملايين اللوحات والصور. الآن عندما تقول له "ارسم قطة تطير في الفضاء"، هو يمزج كل ما تعلّمه عن القطط والفضاء والطيران ليصنع صورة جديدة لم تكن موجودة من قبل! هذا يُسمى "الذكاء الاصطناعي التوليدي".',
+    funFact: 'هل تعلم؟ يمكنك توليد صور بـ AI مجاناً على Bing Image Creator! 🖼️',
+  },
+  {
+    emoji: '🎮',
+    title: 'AI في الألعاب',
+    age: '8+',
+    color: '#FFF1F2',
+    textColor: '#E11D48',
+    content: 'هل لعبت ألعاب فيديو ضد الكمبيوتر؟ الأعداء في اللعبة يتحركون ويتخذون قرارات — هذا ذكاء اصطناعي! في لعبة شطرنج مثلاً، AI يحسب ملايين الحركات المحتملة ويختار الأفضل. في 1997، كمبيوتر اسمه Deep Blue فاز على بطل العالم في الشطرنج!',
+    funFact: 'هل تعلم؟ AI في لعبة AlphaGo اخترع حركات ما فكّر فيها أي إنسان من قبل! ♟️',
+  },
+  {
+    emoji: '🛡️',
+    title: 'كيف نستخدم AI بأمان؟',
+    age: '8+',
+    color: '#F0FDF4',
+    textColor: '#166534',
+    content: 'AI أداة رائعة لكن لازم نستخدمها بذكاء:\n\n1. لا تصدّق كل شيء يقوله — أحياناً يخطئ!\n2. لا تشارك معلوماتك الشخصية (اسمك الكامل، مدرستك، عنوانك)\n3. اسأل والديك قبل استخدام أي أداة AI جديدة\n4. AI يساعدك في التعلّم لكن لا تنسخ واجباتك منه!',
+    funFact: 'نصيحة: استخدم AI كمعلم خصوصي — اطلب منه شرح الأشياء بطريقة ممتعة! 🎓',
+  },
+];
+
+const activities = [
+  { emoji: '🗣️', title: 'تحدّث مع AI', desc: 'اسأل ChatGPT سؤالاً ممتعاً مثل: "لو كنت حيوان، أي حيوان سأكون ولماذا؟"', difficulty: 'سهل' },
+  { emoji: '🎨', title: 'ارسم مع AI', desc: 'جرّب Bing Image Creator واكتب: "قطة فضائية ترتدي بدلة رائد فضاء"', difficulty: 'سهل' },
+  { emoji: '📖', title: 'اكتب قصة', desc: 'اطلب من ChatGPT أن يكتب بداية قصة ثم أكملها أنت!', difficulty: 'متوسط' },
+  { emoji: '🧪', title: 'تجربة علمية', desc: 'اسأل AI أن يعلّمك تجربة علمية آمنة يمكنك تجربتها في المنزل', difficulty: 'متوسط' },
+  { emoji: '🎵', title: 'أنشئ أغنية', desc: 'جرّب Suno AI لإنشاء أغنية عن موضوعك المفضل!', difficulty: 'سهل' },
+  { emoji: '🏫', title: 'معلم خصوصي', desc: 'اطلب من AI شرح درس صعب عليك بطريقة مبسّطة مع أمثلة', difficulty: 'سهل' },
+];
+
+const quiz = [
+  { q: 'ما هو الذكاء الاصطناعي؟', a: 'دماغ إلكتروني', b: 'روبوت حقيقي', c: 'لعبة فيديو', correct: 'a' },
+  { q: 'كيف يتعلّم AI؟', a: 'من المعلم فقط', b: 'من أمثلة كثيرة', c: 'من الكتب فقط', correct: 'b' },
+  { q: 'هل AI يفهم مثل الإنسان؟', a: 'نعم تماماً', b: 'لا، لكنه يقلّد الفهم جيداً', c: 'أفضل من الإنسان', correct: 'b' },
+  { q: 'أي من هذه الأشياء يستخدم AI؟', a: 'فلتر الصور في إنستغرام', b: 'القلم الرصاص', c: 'الكتاب الورقي', correct: 'a' },
+];
+---
+
+<BaseLayout title="AI للأطفال — عَقول" description="تعلّم الذكاء الاصطناعي بطريقة ممتعة وبسيطة للأطفال">
+  <Navbar />
+  <SearchModal />
+
+  <!-- Hero -->
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);text-align:center;">
+    <div class="container">
+      <div style="font-size:4rem;margin-bottom:1rem;">🤖🧒</div>
+      <h1 style="font-size:clamp(1.8rem,4vw,2.5rem);font-weight:900;margin-bottom:1rem;">
+        تعلّم <span class="gradient-text">الذكاء الاصطناعي</span> بطريقة ممتعة!
+      </h1>
+      <p style="font-size:1.1rem;color:var(--text-muted);max-width:500px;margin:0 auto 2rem;line-height:1.8;">
+        هل تعرف كيف يفكر الكمبيوتر؟ كيف يرسم صوراً؟ كيف يتكلّم؟ تعال نكتشف معاً!
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="#lessons" class="btn-primary" style="font-size:1rem;">📚 ابدأ التعلّم</a>
+        <a href="#activities" class="btn-outline" style="font-size:1rem;">🎮 أنشطة ممتعة</a>
+        <a href="#quiz" class="btn-outline" style="font-size:1rem;">🧩 اختبر معلوماتك</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lessons -->
+  <section class="section section-alt" id="lessons">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">📚 دروس</div>
+        <h2 class="section-title">تعلّم خطوة بخطوة</h2>
+        <p class="section-sub">كل درس يشرح فكرة واحدة بطريقة بسيطة وممتعة</p>
+      </div>
+
+      <div class="kids-lessons-grid">
+        {lessons.map((lesson, i) => (
+          <div class="kids-lesson-card" style={`border-top:4px solid ${lesson.textColor};`}>
+            <div class="kids-lesson-header" style={`background:${lesson.color};`}>
+              <span style="font-size:2.5rem;">{lesson.emoji}</span>
+              <span class="kids-age-badge" style={`color:${lesson.textColor};`}>🎂 {lesson.age}</span>
+            </div>
+            <div class="kids-lesson-body">
+              <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:0.75rem;">{lesson.title}</h3>
+              <p style="font-size:0.92rem;color:var(--text-2);line-height:1.85;margin-bottom:1rem;white-space:pre-line;">{lesson.content}</p>
+              <div class="kids-fun-fact" style={`background:${lesson.color};border-right:3px solid ${lesson.textColor};`}>
+                <p style="font-size:0.85rem;font-weight:600;color:var(--text-2);line-height:1.7;">{lesson.funFact}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Activities -->
+  <section class="section" id="activities">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">🎮 أنشطة</div>
+        <h2 class="section-title">جرّب بنفسك!</h2>
+        <p class="section-sub">أنشطة ممتعة يمكنك تجربتها الآن مع أهلك</p>
+      </div>
+
+      <div class="library-grid">
+        {activities.map((act) => (
+          <div class="lib-card">
+            <div class="lib-icon" style="background:var(--accent-light);color:var(--accent);">
+              {act.emoji}
+            </div>
+            <h3>{act.title}</h3>
+            <p>{act.desc}</p>
+            <div class="lib-tags">
+              <span>{act.difficulty}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="section section-alt" id="quiz">
+    <div class="container" style="max-width:600px;">
+      <div class="section-header">
+        <div class="section-tag">🧩 اختبار</div>
+        <h2 class="section-title">اختبر معلوماتك!</h2>
+        <p class="section-sub">4 أسئلة سريعة — هل تقدر تجاوب صح على كلها؟</p>
+      </div>
+
+      <div id="quizContainer">
+        {quiz.map((q, i) => (
+          <div class="kids-quiz-card" data-question={i} data-correct={q.correct}>
+            <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">
+              {i + 1}. {q.q}
+            </h3>
+            <div class="kids-quiz-options">
+              <button class="kids-quiz-option" data-answer="a">أ) {q.a}</button>
+              <button class="kids-quiz-option" data-answer="b">ب) {q.b}</button>
+              <button class="kids-quiz-option" data-answer="c">ج) {q.c}</button>
+            </div>
+            <div class="kids-quiz-result hidden" style="margin-top:12px;padding:10px;border-radius:var(--radius-sm);font-size:0.9rem;font-weight:700;"></div>
+          </div>
+        ))}
+      </div>
+
+      <div id="quizScore" class="hidden" style="text-align:center;margin-top:2rem;padding:2rem;background:var(--accent-light);border-radius:var(--radius-lg);">
+        <div style="font-size:3rem;margin-bottom:0.5rem;">🎉</div>
+        <h3 style="font-size:1.3rem;font-weight:900;" id="scoreText"></h3>
+        <p style="color:var(--text-muted);margin-top:0.5rem;" id="scoreMsg"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Parents Note -->
+  <section class="section">
+    <div class="container" style="max-width:600px;">
+      <div class="enhancer-card" style="text-align:center;">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">👨‍👩‍👧‍👦</div>
+        <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:0.75rem;">ملاحظة للأهل</h3>
+        <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.8;">
+          هذا القسم مصمم ليكون آمناً وتعليمياً. ننصح بمرافقة أطفالكم أثناء تجربة أدوات AI
+          والحديث معهم عن الاستخدام الآمن والمسؤول. الذكاء الاصطناعي فرصة رائعة للتعلّم
+          عندما يُستخدم بإشراف. 💚
+        </p>
+        <a href="/bible" class="btn-outline" style="margin-top:1rem;display:inline-flex;border-radius:50px;">📖 الموسوعة الكاملة (للكبار)</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .kids-lessons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .kids-lesson-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .kids-lesson-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  .kids-lesson-header {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .kids-age-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 12px;
+    border-radius: 50px;
+  }
+  .kids-lesson-body {
+    padding: 1.5rem 2rem 2rem;
+  }
+  .kids-fun-fact {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin-top: 1rem;
+  }
+  .kids-quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 16px;
+  }
+  .kids-quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .kids-quiz-option {
+    padding: 12px 16px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: right;
+  }
+  .kids-quiz-option:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .kids-quiz-option.correct {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .kids-quiz-option.wrong {
+    background: var(--rose-light);
+    border-color: var(--rose);
+    color: var(--rose);
+  }
+  .kids-quiz-option:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+  @media (max-width: 768px) {
+    .kids-lessons-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  let answered = 0;
+  let correct = 0;
+  const total = document.querySelectorAll('.kids-quiz-card').length;
+
+  document.querySelectorAll('.kids-quiz-card').forEach((card) => {
+    const correctAnswer = (card as HTMLElement).dataset.correct;
+    const resultEl = card.querySelector('.kids-quiz-result') as HTMLElement;
+    const buttons = card.querySelectorAll('.kids-quiz-option');
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const answer = (btn as HTMLElement).dataset.answer;
+        const isCorrect = answer === correctAnswer;
+
+        // Disable all buttons
+        buttons.forEach((b) => {
+          (b as HTMLButtonElement).disabled = true;
+          if ((b as HTMLElement).dataset.answer === correctAnswer) {
+            b.classList.add('correct');
+          }
+        });
+
+        if (isCorrect) {
+          btn.classList.add('correct');
+          resultEl.textContent = '✅ إجابة صحيحة! أحسنت!';
+          resultEl.style.background = 'var(--accent-light)';
+          resultEl.style.color = 'var(--accent)';
+          correct++;
+        } else {
+          btn.classList.add('wrong');
+          resultEl.textContent = '❌ إجابة خاطئة — الإجابة الصحيحة مُظلّلة بالأخضر';
+          resultEl.style.background = 'var(--rose-light)';
+          resultEl.style.color = 'var(--rose)';
+        }
+        resultEl.classList.remove('hidden');
+
+        answered++;
+        if (answered === total) {
+          const scoreDiv = document.getElementById('quizScore') as HTMLElement;
+          const scoreText = document.getElementById('scoreText') as HTMLElement;
+          const scoreMsg = document.getElementById('scoreMsg') as HTMLElement;
+
+          scoreDiv.classList.remove('hidden');
+          scoreText.textContent = `نتيجتك: ${correct} من ${total}`;
+
+          if (correct === total) scoreMsg.textContent = 'ممتاز! أنت عبقري AI! 🌟';
+          else if (correct >= total / 2) scoreMsg.textContent = 'جيد جداً! تابع التعلّم! 💪';
+          else scoreMsg.textContent = 'لا بأس! اقرأ الدروس وجرّب مرة ثانية 📚';
+
+          scoreDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  });
+</script>

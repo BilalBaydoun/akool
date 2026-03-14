@@ -1,0 +1,65 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import ChatWidget from '../../components/ChatWidget.astro';
+import SearchModal from '../../components/SearchModal.astro';
+
+const foundations = (await getCollection('foundations')).sort((a, b) => a.data.order - b.data.order);
+
+let guides: any[] = [];
+try {
+  guides = await getCollection('guides');
+} catch (_) {}
+---
+
+<BaseLayout title="موسوعة عَقول — الموسوعة العربية للذكاء الاصطناعي" description="المرجع الشامل لكل ما تحتاج معرفته عن AI — من الأساسيات إلى الاحتراف">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">📖 موسوعة عَقول</div>
+        <h2 class="section-title">الموسوعة العربية للذكاء الاصطناعي</h2>
+        <p class="section-sub">المرجع الشامل لكل ما تحتاج معرفته عن AI — من الأساسيات إلى الاحتراف</p>
+      </div>
+
+      <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;">📚 الأساسيات</h3>
+      <div class="library-grid" style="margin-bottom:3rem;">
+        {foundations.map((item) => (
+          <a href={`/bible/${item.id}`} class="lib-card">
+            <div class="lib-icon" style="background:var(--accent-light);color:var(--accent);">
+              {item.data.icon}
+            </div>
+            <h3>{item.data.title}</h3>
+            <p>{item.data.description}</p>
+            <span class="lib-link">اقرأ المزيد ←</span>
+          </a>
+        ))}
+      </div>
+
+      {guides.length > 0 && (
+        <>
+          <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;">🗺️ الأدلة الشاملة</h3>
+          <div class="library-grid">
+            {guides.map((guide) => (
+              <a href={`/bible/${guide.id}`} class="lib-card">
+                <div class="lib-icon" style={`background:${guide.data.color};color:${guide.data.textColor};`}>
+                  {guide.data.icon}
+                </div>
+                <h3>{guide.data.title}</h3>
+                <p>{guide.data.description}</p>
+                <span class="lib-link">اقرأ الدليل ←</span>
+              </a>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>

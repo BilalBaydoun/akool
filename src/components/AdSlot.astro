@@ -1,0 +1,20 @@
+---
+interface Props {
+  type?: 'leaderboard' | 'rectangle';
+}
+
+const { type = 'leaderboard' } = Astro.props;
+const isRectangle = type === 'rectangle';
+---
+
+<div class={isRectangle ? 'ad-mid' : 'ad-banner'}>
+  <div class="container">
+    <div class={`ad-slot ${isRectangle ? 'ad-rectangle' : 'ad-leaderboard'}`}>
+      <div class="ad-placeholder">
+        <span>مساحة إعلانية — Google AdSense</span>
+        <code>{isRectangle ? '728 × 250 Rectangle' : '728 × 90 Leaderboard'}</code>
+      </div>
+      <!-- Replace with: <ins class="adsbygoogle" data-ad-client="ca-pub-XXX" data-ad-slot="XXX"></ins> -->
+    </div>
+  </div>
+</div>

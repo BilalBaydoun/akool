@@ -1,0 +1,176 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Navbar from '../../../components/Navbar.astro';
+import Footer from '../../../components/Footer.astro';
+import SearchModal from '../../../components/SearchModal.astro';
+import { learningPaths } from '../../../data/learning-paths';
+
+export function getStaticPaths() {
+  const paths: any[] = [];
+  for (const p of learningPaths) {
+    for (let i = 0; i < p.lessons.length; i++) {
+      paths.push({ params: { path: p.id, lesson: i.toString() }, props: { path: p, lessonIdx: i } });
+    }
+  }
+  return paths;
+}
+
+const { path, lessonIdx } = Astro.props;
+const lesson = path.lessons[lessonIdx];
+const isLast = lessonIdx === path.lessons.length - 1;
+const nextUrl = isLast ? `/learn/${path.id}` : `/learn/${path.id}/${lessonIdx + 1}`;
+---
+
+<BaseLayout title={`${lesson.title} — ${path.title}`}>
+  <div id="reading-progress" style="position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg,var(--accent),#2ECC71);z-index:1001;transition:width 0.1s linear;"></div>
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:700px;">
+      <a href={`/learn/${path.id}`} style="display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-weight:700;font-size:0.9rem;margin-bottom:1.5rem;">
+        → العودة لـ {path.title}
+      </a>
+
+      <!-- Progress -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;font-size:0.85rem;color:var(--text-muted);">
+        <span class="blog-tag" style={`background:${path.color};color:${path.textColor};`}>{path.title}</span>
+        <span>الدرس {lessonIdx + 1} من {path.lessons.length}</span>
+        <span>⏱ {lesson.duration}</span>
+      </div>
+
+      <!-- Lesson Header -->
+      <div style="margin-bottom:2rem;">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;">{lesson.emoji}</div>
+        <h1 style="font-size:1.5rem;font-weight:900;line-height:1.4;">{lesson.title}</h1>
+      </div>
+
+      <!-- Content -->
+      <div class="article-content" set:html={lesson.content} />
+
+      <!-- Quiz -->
+      <div style="margin-top:2.5rem;padding-top:2rem;border-top:2px solid var(--accent-light);">
+        <h2 style="font-size:1.2rem;font-weight:900;margin-bottom:0.5rem;">🧩 اختبر فهمك</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.5rem;">أجب على الأسئلة لإكمال الدرس</p>
+
+        <div id="quizArea" data-path={path.id} data-lesson={lessonIdx} data-total={lesson.quiz.length} data-next={nextUrl} data-is-last={isLast}>
+          {lesson.quiz.map((q, qi) => (
+            <div class="bible-quiz-card" data-correct={q.correct} data-qi={qi}>
+              <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;">{qi + 1}. {q.question}</h3>
+              <div class="bible-quiz-options">
+                {q.options.map((opt, oi) => (
+                  <button class="bible-quiz-option lesson-quiz-btn" data-idx={oi}>{opt}</button>
+                ))}
+              </div>
+              <div class="quiz-explanation hidden" style="margin-top:10px;padding:10px 14px;border-radius:var(--radius-sm);font-size:0.85rem;line-height:1.7;">
+                {q.explanation}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Completion -->
+        <div id="lessonComplete" class="hidden" style="text-align:center;padding:2rem;background:var(--accent-light);border-radius:var(--radius-lg);margin-top:1.5rem;">
+          <div style="font-size:2.5rem;margin-bottom:0.5rem;">🎉</div>
+          <h3 style="font-size:1.1rem;font-weight:900;margin-bottom:0.5rem;" id="scoreText"></h3>
+          <p style="color:var(--text-muted);margin-bottom:1.5rem;" id="scoreMsg"></p>
+          <a href={nextUrl} id="nextBtn" class="btn-primary" style="padding:12px 24px;font-size:0.95rem;">
+            {isLast ? '🎓 إنهاء المسار' : 'الدرس التالي →'}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .bible-quiz-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:12px; }
+  .bible-quiz-options { display:flex; flex-direction:column; gap:8px; }
+  .bible-quiz-option { padding:10px 14px; background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:var(--font); font-size:0.9rem; font-weight:600; color:var(--text); cursor:pointer; transition:all 0.2s; text-align:right; }
+  .bible-quiz-option:hover:not(:disabled) { border-color:var(--accent); background:var(--accent-light); }
+  .bible-quiz-option.correct { background:var(--accent-light); border-color:var(--accent); color:var(--accent); }
+  .bible-quiz-option.wrong { background:var(--rose-light); border-color:var(--rose); color:var(--rose); }
+  .bible-quiz-option:disabled { cursor:default; opacity:0.7; }
+</style>
+
+<script>
+  const area = document.getElementById('quizArea') as HTMLElement;
+  const pathId = area.dataset.path || '';
+  const lessonIdx = parseInt(area.dataset.lesson || '0');
+  const totalQ = parseInt(area.dataset.total || '0');
+  const nextUrl = area.dataset.next || '';
+  const isLast = area.dataset.isLast === 'true';
+  const key = `akool-learn-${pathId}`;
+
+  let answered = 0;
+  let correct = 0;
+
+  document.querySelectorAll('.bible-quiz-card').forEach((card) => {
+    const correctIdx = parseInt((card as HTMLElement).dataset.correct || '0');
+    const explanation = card.querySelector('.quiz-explanation') as HTMLElement;
+    const buttons = card.querySelectorAll('.lesson-quiz-btn');
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt((btn as HTMLElement).dataset.idx || '0');
+        const isCorrect = idx === correctIdx;
+
+        buttons.forEach((b, j) => {
+          (b as HTMLButtonElement).disabled = true;
+          if (j === correctIdx) b.classList.add('correct');
+        });
+
+        if (isCorrect) { btn.classList.add('correct'); correct++; }
+        else { btn.classList.add('wrong'); }
+
+        explanation.classList.remove('hidden');
+        explanation.style.background = isCorrect ? 'var(--accent-light)' : 'var(--rose-light)';
+        explanation.style.color = isCorrect ? 'var(--accent)' : 'var(--rose)';
+
+        answered++;
+        if (answered === totalQ) completeLesson();
+      });
+    });
+  });
+
+  function completeLesson() {
+    // Save progress
+    let progress = { completedLessons: [] as number[], scores: {} as Record<number, number> };
+    try { const s = localStorage.getItem(key); if (s) progress = JSON.parse(s); } catch {}
+
+    if (!progress.completedLessons.includes(lessonIdx)) {
+      progress.completedLessons.push(lessonIdx);
+    }
+    progress.scores[lessonIdx] = correct;
+    localStorage.setItem(key, JSON.stringify(progress));
+
+    // Show completion
+    const complete = document.getElementById('lessonComplete') as HTMLElement;
+    const scoreText = document.getElementById('scoreText') as HTMLElement;
+    const scoreMsg = document.getElementById('scoreMsg') as HTMLElement;
+
+    complete.classList.remove('hidden');
+    scoreText.textContent = `النتيجة: ${correct} من ${totalQ}`;
+    const pct = correct / totalQ;
+    scoreMsg.textContent = pct === 1 ? '🌟 ممتاز! إجابات كاملة' : pct >= 0.5 ? '👍 جيد! تابع للدرس التالي' : '📚 حاول مراجعة الدرس';
+
+    complete.scrollIntoView({ behavior: 'smooth' });
+
+    // Notification
+    if (typeof (window as any).__addNotification === 'function') {
+      (window as any).__addNotification(`✅ أكملت درس "${document.querySelector('h1')?.textContent}"`, window.location.href);
+    }
+  }
+
+  // Reading progress
+  window.addEventListener('scroll', () => {
+    const bar = document.getElementById('reading-progress') as HTMLElement;
+    const content = document.querySelector('.article-content') as HTMLElement;
+    if (bar && content) {
+      const pct = Math.min(100, Math.max(0, ((window.scrollY - content.offsetTop + window.innerHeight) / (content.offsetHeight + window.innerHeight)) * 100));
+      bar.style.width = pct + '%';
+    }
+  }, { passive: true });
+</script>

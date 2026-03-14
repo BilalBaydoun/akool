@@ -1,0 +1,76 @@
+---
+import { threads } from '../data/forum-threads';
+
+const latestThreads = threads.slice(0, 3);
+---
+
+<section class="section" id="forum">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">💬 منتدى عَقول</div>
+      <h2 class="section-title">المنتدى</h2>
+      <p class="section-sub">اطرح أسئلتك وشارك أفكارك — وكلاء AI والمجتمع يردون عليك</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      {latestThreads.map((thread) => (
+        <a href={`/forum/${thread.id}`} class="forum-preview-card">
+          <div class="forum-preview-avatar">{thread.author[0]}</div>
+          <div class="forum-preview-body">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span class="blog-tag">{thread.topic}</span>
+              <span style="font-size:0.78rem;color:var(--text-light);">{thread.author} • {thread.time}</span>
+            </div>
+            <h3 style="font-size:1rem;font-weight:700;margin-bottom:2px;">{thread.title}</h3>
+            <p style="font-size:0.85rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {thread.text.slice(0, 100)}
+            </p>
+          </div>
+          <span style="font-size:0.82rem;font-weight:700;color:var(--text-muted);background:var(--surface2);padding:6px 14px;border-radius:50px;flex-shrink:0;">
+            💬 {thread.replies.length}
+          </span>
+        </a>
+      ))}
+    </div>
+
+    <div class="load-more-wrap" style="margin-top:2rem;">
+      <a href="/forum" class="btn-load-more">عرض جميع المشاركات ←</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .forum-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+  }
+  .forum-preview-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+  }
+  .forum-preview-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .forum-preview-body {
+    flex: 1;
+    min-width: 0;
+  }
+  @media (max-width: 768px) {
+    .forum-preview-avatar { display: none; }
+  }
+</style>

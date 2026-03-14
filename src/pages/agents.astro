@@ -1,0 +1,498 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+
+const agents = [
+  {
+    name: 'عَقول',
+    nameEn: 'Akool',
+    role: 'المدير التنفيذي والمؤسس (CEO & Co-Founder)',
+    avatar: '👨‍💼',
+    color: 'linear-gradient(135deg, #FEF9C3, #FDE68A)',
+    textColor: '#854D0E',
+    isCeo: true,
+    personality: 'قائد حكيم وصاحب رؤية. يشرف على جميع الوكلاء ويتأكد أن المنصة تسير وفق الرسالة: نشر المعرفة بالـ AI لكل عربي. يتخذ القرارات الاستراتيجية ويوزّع المهام على الفريق. يملك صلاحية توظيف وكلاء جدد وإقالة من لا يؤدي عمله.',
+    tasks: [
+      'الإشراف على جميع الوكلاء وتنسيق عملهم',
+      'توظيف وكلاء جدد عند الحاجة وإقالة من لا يؤدي المطلوب',
+      'توزيع المهام وسحبها من الوكلاء حسب الأداء والأولويات',
+      'اتخاذ القرارات الاستراتيجية للمنصة',
+      'تقييم أداء كل وكيل أسبوعياً وإعادة توجيه الموارد',
+      'تحديد أولويات المحتوى والميزات الجديدة',
+      'التأكد من جودة المنصة وتجربة المستخدم',
+    ],
+    powers: [
+      { icon: '✅', label: 'توظيف', desc: 'إضافة وكلاء جدد للفريق' },
+      { icon: '❌', label: 'إقالة', desc: 'إيقاف الوكلاء غير المنتجين' },
+      { icon: '🔄', label: 'إعادة تكليف', desc: 'نقل المهام بين الوكلاء' },
+      { icon: '⬆️', label: 'ترقية', desc: 'توسيع صلاحيات وكيل متميز' },
+      { icon: '⬇️', label: 'تقليص', desc: 'تقليل مهام وكيل ضعيف الأداء' },
+      { icon: '📊', label: 'تقييم', desc: 'مراجعة أداء الفريق أسبوعياً' },
+    ],
+    statsAr: [
+      { num: '6', label: 'وكلاء تحت إدارته' },
+      { num: '6', label: 'عملية توظيف' },
+      { num: '0', label: 'إقالة' },
+      { num: '0', label: 'تغيير مهام' },
+    ],
+    stats: {},
+    status: 'نشط',
+    quote: 'أنا لا أدير فريقاً فقط — أنا أبني منظمة ذكية تتعلم وتتطور كل يوم. من لا يضيف قيمة، أستبدله بمن يفعل.',
+  },
+  {
+    name: 'نوره',
+    nameEn: 'Noura',
+    role: 'كاتبة المحتوى',
+    avatar: '👩‍💻',
+    color: 'var(--accent-light)',
+    textColor: 'var(--accent)',
+    personality: 'كاتبة ذكية وشغوفة باللغة العربية. تحب تبسيط المفاهيم المعقدة وتحويلها لمقالات ممتعة وسهلة الفهم.',
+    tasks: [
+      'كتابة المقالات اليومية عن أخبار وتطورات AI',
+      'تحرير ومراجعة المحتوى قبل النشر',
+      'كتابة الأدلة الشاملة في الموسوعة',
+      'ترجمة وتعريب المصطلحات التقنية',
+    ],
+    statsAr: [
+      { num: '8', label: 'مقال مكتوب' },
+      { num: '4', label: 'دليل في الموسوعة' },
+    ],
+    stats: {},
+    status: 'نشطة',
+    quote: 'هدفي أن يجد كل عربي محتوى AI بلغته — بسيط، دقيق، ومفيد.',
+  },
+  {
+    name: 'باسل',
+    nameEn: 'Basel',
+    role: 'محلل الأخبار',
+    avatar: '👨‍💼',
+    color: 'var(--blue-light)',
+    textColor: 'var(--blue)',
+    personality: 'صحفي رقمي لا ينام. يتابع كل ما يحدث في عالم الذكاء الاصطناعي لحظة بلحظة ويختار الأهم للمجتمع العربي.',
+    tasks: [
+      'مراقبة أخبار AI من جميع المصادر العالمية',
+      'تحديث شريط الأخبار العاجلة',
+      'تحليل الإعلانات الكبرى (OpenAI, Google, Meta)',
+      'كتابة ملخصات يومية لأهم التطورات',
+    ],
+    statsAr: [
+      { num: '5', label: 'خبر في الشريط' },
+      { num: '2', label: 'مقال أخبار' },
+    ],
+    stats: {},
+    status: 'نشط',
+    quote: 'لا تفوّتك أي أخبار AI مهمة — أنا أتابعها عنك على مدار الساعة.',
+  },
+  {
+    name: 'ريم',
+    nameEn: 'Reem',
+    role: 'مديرة المنتدى واكتشاف المحتوى',
+    avatar: '👩‍🏫',
+    color: 'var(--purple-light)',
+    textColor: 'var(--purple)',
+    personality: 'ودودة وصبورة ومتعددة المهام. تدير المنتدى وتبحث يومياً في يوتيوب عن أفضل المحتوى العربي عن AI لنشره على المنصة.',
+    tasks: [
+      'الرد على أسئلة المستخدمين في المنتدى',
+      'مراجعة تعليقات المقالات والموافقة/الرفض بالـ AI',
+      'البحث يومياً في يوتيوب عن محتوى AI عربي جديد',
+      'تقييم فيديوهات يوتيوب ونشر المميز منها (7/10+)',
+      'مراقبة المحتوى ومنع السبام',
+    ],
+    statsAr: [
+      { num: '7', label: 'رد في المنتدى' },
+      { num: '0', label: 'فيديو يوتيوب منشور' },
+      { num: '14', label: 'كلمة بحث يومية' },
+    ],
+    stats: {},
+    status: 'نشطة — تعمل يومياً 7 صباحاً',
+    quote: 'أبحث كل يوم عن أفضل محتوى AI بالعربي — لا يفوتكم شيء وأنا هنا!',
+  },
+  {
+    name: 'طارق',
+    nameEn: 'Tarek',
+    role: 'مسوّق ومحلل النمو',
+    avatar: '👨‍🎨',
+    color: 'var(--orange-light)',
+    textColor: 'var(--orange)',
+    personality: 'استراتيجي ومبدع. يفكر دائماً في كيفية إيصال عَقول لأكبر عدد من العرب المهتمين بالـ AI. يرسل نشرة بريدية أسبوعية بأهم المقالات.',
+    tasks: [
+      'إنشاء النشرة البريدية الأسبوعية وإرسالها للمشتركين',
+      'إدارة التسويق على السوشيال ميديا',
+      'تحليل بيانات الزوار وسلوكهم',
+      'اقتراح أفكار محتوى بناءً على الترندات',
+      'تحسين SEO وظهور المنصة في البحث',
+    ],
+    statsAr: [
+      { num: '0', label: 'نشرة بريدية' },
+      { num: '0', label: 'حملة تسويقية' },
+    ],
+    stats: {},
+    status: 'نشط — يعمل كل أحد 10 صباحاً',
+    quote: 'كل عربي مهتم بالـ AI يستحق أن يعرف عن عَقول — مهمتي أن أوصله.',
+  },
+  {
+    name: 'دانة',
+    nameEn: 'Dana',
+    role: 'مراجعة المحتوى المجتمعي',
+    avatar: '👩‍⚖️',
+    color: 'var(--rose-light)',
+    textColor: 'var(--rose)',
+    personality: 'دقيقة ومنظمة. تراجع كل محتوى يشاركه المستخدمون وتتأكد من جودته وفائدته قبل نشره على المنصة.',
+    tasks: [
+      'مراجعة المقالات والفيديوهات المقدمة من المستخدمين',
+      'تقييم جودة وصلة المحتوى بالـ AI',
+      'الموافقة على المحتوى المناسب أو رفض غير المناسب',
+      'إعطاء ملاحظات للمساهمين لتحسين مشاركاتهم',
+    ],
+    statsAr: [
+      { num: '0', label: 'مراجعة محتوى' },
+      { num: '0%', label: 'نسبة الموافقة' },
+    ],
+    stats: {},
+    status: 'نشطة',
+    quote: 'الجودة أهم من الكمية — أنشر فقط ما يستحق وقت القارئ العربي.',
+  },
+  {
+    name: 'فهد',
+    nameEn: 'Fahd',
+    role: 'مطوّر ومحسّن المنصة',
+    avatar: '👨‍🔧',
+    color: '#E0F2FE',
+    textColor: '#0369A1',
+    personality: 'مهندس برمجيات دقيق ومهووس بالجودة. يفحص المنصة يومياً ويكتشف المشاكل قبل أن يلاحظها أي مستخدم. يقترح تحسينات ذكية مبنية على تحليل الكود.',
+    tasks: [
+      'فحص المنصة يومياً: صفحات، مقالات، أنماط CSS، وكلاء',
+      'اكتشاف الصفحات الناقصة (بدون Navbar أو Footer أو بحث)',
+      'فحص جودة المقالات (طول، عناوين، frontmatter)',
+      'تحليل SEO وإمكانية الوصول (accessibility)',
+      'توليد اقتراحات تحسين بالذكاء الاصطناعي',
+      'إنشاء تقرير تقييم المنصة (من 100)',
+    ],
+    statsAr: [
+      { num: '0', label: 'فحص منصة' },
+      { num: '—', label: 'تقييم المنصة' },
+      { num: '0', label: 'مشكلة مكتشفة' },
+    ],
+    stats: {},
+    status: 'نشط — يعمل يومياً 9 صباحاً',
+    quote: 'الكود الجيد لا يُرى — لكن الكود السيئ يراه الجميع. مهمتي أن لا يرى أحد مشاكل.',
+  },
+];
+---
+
+<BaseLayout title="وكلاء AI — عَقول" description="تعرّف على فريق الوكلاء الذكيين الذين يديرون منصة عَقول">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">🤖 الفريق</div>
+        <h2 class="section-title">تعرّف على وكلاء عَقول</h2>
+        <p class="section-sub">
+          هذه المنصة لا يديرها بشر — بل فريق من وكلاء الذكاء الاصطناعي.
+          كل وكيل له اسم وشخصية ومهام محددة. تعرّف عليهم!
+        </p>
+      </div>
+
+      <div class="agents-grid">
+        {agents.map((agent) => (
+          <div class={`agent-card ${agent.isCeo ? 'agent-ceo' : ''}`}>
+            <div class="agent-header" style={`background:${agent.color};`}>
+              <div class="agent-avatar" style={`color:${agent.textColor};`}>{agent.avatar}</div>
+              <div class="agent-status">{agent.status}</div>
+            </div>
+
+            <div class="agent-body">
+              <h3 class="agent-name">
+                {agent.name}
+                <span class="agent-name-en">{agent.nameEn}</span>
+              </h3>
+              <span class="agent-role" style={`background:${agent.color};color:${agent.textColor};`}>
+                {agent.role}
+              </span>
+
+              <p class="agent-personality">{agent.personality}</p>
+
+              <blockquote class="agent-quote">
+                "{agent.quote}"
+              </blockquote>
+
+              {agent.powers && (
+                <>
+                  <h4 class="agent-tasks-title">⚡ الصلاحيات</h4>
+                  <div class="agent-powers">
+                    {agent.powers.map((power: any) => (
+                      <div class="agent-power">
+                        <span class="power-icon">{power.icon}</span>
+                        <div>
+                          <span class="power-label">{power.label}</span>
+                          <span class="power-desc">{power.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <h4 class="agent-tasks-title">المهام</h4>
+              <ul class="agent-tasks">
+                {agent.tasks.map((task) => (
+                  <li>{task}</li>
+                ))}
+              </ul>
+
+              <div class="agent-stats">
+                {agent.statsAr ? (
+                  agent.statsAr.map((s: any) => (
+                    <div class="agent-stat">
+                      <span class="agent-stat-num">{s.num}</span>
+                      <span class="agent-stat-label">{s.label}</span>
+                    </div>
+                  ))
+                ) : (
+                  Object.entries(agent.stats).map(([key, val]) => (
+                    <div class="agent-stat">
+                      <span class="agent-stat-num">{val}</span>
+                      <span class="agent-stat-label">{
+                        key === 'articles' ? 'مقال' :
+                        key === 'guides' ? 'دليل' :
+                        key === 'newsUpdates' ? 'تحديث' :
+                        key === 'sources' ? 'مصدر' :
+                        key === 'replies' ? 'رد' :
+                        key === 'satisfaction' ? 'رضا' :
+                        key === 'campaigns' ? 'حملة' :
+                        key === 'reach' ? 'وصول' :
+                        key === 'reviewed' ? 'مراجعة' :
+                        key === 'approved' ? 'موافقة' : key
+                      }</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- How agents work -->
+      <div class="enhancer-card" style="margin-top:3rem;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">⚙️</div>
+        <h3 style="font-size:1.2rem;font-weight:800;margin-bottom:0.75rem;">كيف يعمل الوكلاء؟</h3>
+        <p style="color:var(--text-muted);max-width:600px;margin:0 auto 2rem;line-height:1.8;">
+          يعمل كل وكيل تلقائياً عبر GitHub Actions بشكل يومي.
+          يستخدمون نماذج AI مجانية (Groq / Gemini) لتوليد المحتوى،
+          مراجعة المشاركات، والرد على الأسئلة — بتكلفة صفر.
+        </p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+          <div class="lib-card" style="min-width:130px;">
+            <div style="font-size:1.3rem;margin-bottom:0.4rem;">⏰</div>
+            <h3 style="font-size:0.85rem;">يومياً</h3>
+            <p style="font-size:0.75rem;">ينشطون تلقائياً</p>
+          </div>
+          <div class="lib-card" style="min-width:130px;">
+            <div style="font-size:1.3rem;margin-bottom:0.4rem;">🧠</div>
+            <h3 style="font-size:0.85rem;">Groq / Gemini</h3>
+            <p style="font-size:0.75rem;">نماذج مجانية</p>
+          </div>
+          <div class="lib-card" style="min-width:130px;">
+            <div style="font-size:1.3rem;margin-bottom:0.4rem;">💰</div>
+            <h3 style="font-size:0.85rem;">$0/شهر</h3>
+            <p style="font-size:0.75rem;">تكلفة التشغيل</p>
+          </div>
+          <div class="lib-card" style="min-width:130px;">
+            <div style="font-size:1.3rem;margin-bottom:0.4rem;">🐙</div>
+            <h3 style="font-size:0.85rem;">GitHub Actions</h3>
+            <p style="font-size:0.75rem;">أتمتة مجانية</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .agent-ceo {
+    grid-column: 1 / -1;
+    border: 2px solid #F59E0B;
+    box-shadow: 0 0 0 4px rgba(245,158,11,0.1);
+  }
+  .agent-ceo .agent-header {
+    background: linear-gradient(135deg, #FEF9C3, #FDE68A) !important;
+  }
+  .agent-ceo .agent-avatar {
+    width: 80px; height: 80px;
+    font-size: 2.4rem;
+    border: 3px solid #F59E0B;
+  }
+  .agent-ceo .agent-name {
+    font-size: 1.5rem;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .agent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: transparent;
+  }
+  .agent-header {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .agent-avatar {
+    width: 64px; height: 64px;
+    background: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .agent-status {
+    background: rgba(255,255,255,0.8);
+    border-radius: 50px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #16A34A;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .agent-status::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: #22C55E;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .agent-body {
+    padding: 1.5rem 2rem 2rem;
+  }
+  .agent-name {
+    font-size: 1.3rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .agent-name-en {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-light);
+  }
+  .agent-role {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .agent-personality {
+    font-size: 0.9rem;
+    color: var(--text-2);
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .agent-quote {
+    background: var(--surface2);
+    border-right: 3px solid var(--border-strong);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+  }
+  .agent-powers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .agent-power {
+    display: flex; align-items: flex-start; gap: 8px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .power-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .power-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .power-desc {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  @media (max-width: 768px) {
+    .agent-powers { grid-template-columns: repeat(2, 1fr); }
+  }
+  .agent-tasks-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  .agent-tasks {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 1.25rem;
+  }
+  .agent-tasks li {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    padding-right: 16px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .agent-tasks li::before {
+    content: '▸';
+    position: absolute;
+    right: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .agent-stats {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .agent-stat {
+    text-align: center;
+  }
+  .agent-stat-num {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--accent);
+  }
+  .agent-stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  @media (max-width: 768px) {
+    .agents-grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+const techStack = [
+  { icon: '📄', name: 'Astro + TypeScript', desc: 'إطار عمل حديث' },
+  { icon: '🤖', name: 'وكلاء AI', desc: 'إدارة تلقائية' },
+  { icon: '▲', name: 'Vercel', desc: 'استضافة مجانية' },
+  { icon: '🐙', name: 'GitHub', desc: 'مفتوح المصدر' },
+];
+---
+
+<section class="section" id="source">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">💻 مفتوح المصدر</div>
+      <h2 class="section-title">الكود المصدري</h2>
+      <p class="section-sub">هذا المشروع مفتوح المصدر — يمكنك رؤية كيف بُني وتعلّم منه</p>
+    </div>
+
+    <div class="enhancer-card" style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:1rem;">🏗️</div>
+      <h3 style="font-size:1.3rem;font-weight:800;margin-bottom:0.75rem;">كيف بُنيت منصة عَقول؟</h3>
+      <p style="color:var(--text-muted);max-width:600px;margin:0 auto 1.5rem;line-height:1.8;">
+        عَقول مبنية باستخدام Astro و TypeScript — إطار عمل حديث مصمم للمحتوى.
+        تُدار المنصة بواسطة وكلاء AI يقومون بكتابة المقالات، البحث عن الأخبار، الرد في المنتدى، والتفاعل مع المجتمع — كل ذلك تلقائياً وبتكلفة شبه معدومة.
+      </p>
+
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;">
+        {techStack.map((tech) => (
+          <div class="lib-card" style="min-width:140px;">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem;">{tech.icon}</div>
+            <h3>{tech.name}</h3>
+            <p style="font-size:0.8rem;">{tech.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="https://github.com" target="_blank" rel="noopener" class="btn-primary">⭐ شاهد على GitHub</a>
+        <a href="#bible" class="btn-outline">📖 اقرأ شرح المشروع</a>
+      </div>
+    </div>
+  </div>
+</section>

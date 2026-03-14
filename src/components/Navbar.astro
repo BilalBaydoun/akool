@@ -1,0 +1,335 @@
+---
+const navLinks = [
+  { href: '/learn', label: 'تعلّم' },
+  { href: '/bible', label: 'الموسوعة' },
+  { href: '/articles', label: 'المقالات' },
+  { href: '/cases', label: 'مشاريع' },
+  { href: '/kids', label: 'للأطفال' },
+  { href: '/forum', label: 'المنتدى' },
+  { href: '/agents', label: 'الوكلاء' },
+];
+---
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="brand">
+      <div class="brand-icon">عَ</div>
+      <span class="brand-name">عَقول</span>
+    </a>
+
+    <div class="nav-links" id="navLinks">
+      {navLinks.map((link) => (
+        <a href={link.href} class="nav-link">{link.label}</a>
+      ))}
+    </div>
+
+    <div class="nav-actions">
+      <button class="theme-toggle notif-btn" id="notifBtn" aria-label="الإشعارات" title="الإشعارات">
+        🔔
+        <span class="notif-badge hidden" id="notifBadge">0</span>
+      </button>
+      <button class="theme-toggle" id="searchBtn" aria-label="بحث" title="بحث (/)">🔍</button>
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الداكن" title="تبديل الوضع الداكن">
+        <span class="theme-icon-light" style="display:none;">☀️</span>
+        <span class="theme-icon-dark">🌙</span>
+      </button>
+      <a href="/login" class="btn-auth" id="authNavBtn">
+        <span class="auth-text-guest">انضم - سجل دخول</span>
+        <span class="auth-text-user hidden"></span>
+      </a>
+      <a href="/#donate" class="btn-donate">❤ تبرّع</a>
+      <button class="nav-toggle" id="navToggle" aria-label="القائمة">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Notification Dropdown Panel -->
+<div class="notif-panel hidden" id="notifPanel">
+  <div class="notif-panel-header">
+    <span style="font-weight:700;font-size:0.95rem;">🔔 الإشعارات</span>
+    <button class="notif-mark-read" id="notifMarkAll">تحديد الكل كمقروء</button>
+  </div>
+  <div class="notif-panel-list" id="notifList"></div>
+  <div class="notif-empty hidden" id="notifEmpty">
+    <span style="font-size:1.5rem;">🔕</span>
+    <p>لا توجد إشعارات</p>
+  </div>
+</div>
+
+<style>
+  .notif-btn {
+    position: relative;
+  }
+  .notif-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #e53e3e;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0 3px;
+  }
+  .notif-badge.hidden {
+    display: none;
+  }
+  .notif-panel {
+    position: fixed;
+    top: var(--nav-h, 60px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    max-width: 92vw;
+    max-height: 400px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .notif-panel.hidden {
+    display: none;
+  }
+  .notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .notif-mark-read {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .notif-mark-read:hover {
+    text-decoration: underline;
+  }
+  .notif-panel-list {
+    overflow-y: auto;
+    flex: 1;
+  }
+  .notif-item {
+    display: block;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .notif-item:hover {
+    background: var(--surface2, rgba(0,0,0,0.03));
+  }
+  .notif-item.unread {
+    background: var(--accent-light, rgba(99,102,241,0.06));
+    font-weight: 600;
+  }
+  .notif-item-text {
+    margin-bottom: 2px;
+    line-height: 1.5;
+  }
+  .notif-item-time {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .notif-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+  }
+  .notif-empty.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+
+  window.addEventListener('scroll', () => {
+    navbar?.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  navToggle?.addEventListener('click', () => {
+    navLinks?.classList.toggle('open');
+  });
+
+  navLinks?.querySelectorAll('.nav-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      navLinks?.classList.remove('open');
+    });
+  });
+
+  // Theme toggle
+  const themeToggle = document.getElementById('themeToggle');
+  function updateToggleIcons() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const lightIcon = themeToggle?.querySelector('.theme-icon-light') as HTMLElement;
+    const darkIcon = themeToggle?.querySelector('.theme-icon-dark') as HTMLElement;
+    if (lightIcon && darkIcon) {
+      lightIcon.style.display = isDark ? 'inline' : 'none';
+      darkIcon.style.display = isDark ? 'none' : 'inline';
+    }
+  }
+
+  updateToggleIcons();
+
+  themeToggle?.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateToggleIcons();
+  });
+
+  // ── NOTIFICATIONS ──
+  const NOTIF_KEY = 'akool-notifications';
+  const notifBtn = document.getElementById('notifBtn');
+  const notifBadge = document.getElementById('notifBadge');
+  const notifPanel = document.getElementById('notifPanel');
+  const notifList = document.getElementById('notifList');
+  const notifEmpty = document.getElementById('notifEmpty');
+  const notifMarkAll = document.getElementById('notifMarkAll');
+
+  interface Notification {
+    id: string;
+    text: string;
+    time: string;
+    read: boolean;
+    link: string;
+  }
+
+  function getNotifications(): Notification[] {
+    try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  function saveNotifications(notifs: Notification[]) {
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+  }
+
+  function updateNotifBadge() {
+    const notifs = getNotifications();
+    const unread = notifs.filter(n => !n.read).length;
+    if (notifBadge) {
+      notifBadge.textContent = String(unread);
+      notifBadge.classList.toggle('hidden', unread === 0);
+    }
+  }
+
+  function renderNotifications() {
+    const notifs = getNotifications();
+    if (!notifList || !notifEmpty) return;
+
+    if (notifs.length === 0) {
+      notifList.innerHTML = '';
+      notifEmpty.classList.remove('hidden');
+      return;
+    }
+
+    notifEmpty.classList.add('hidden');
+    notifList.innerHTML = notifs
+      .slice()
+      .reverse()
+      .map(n => {
+        const timeStr = new Date(n.time).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return `<a class="notif-item${n.read ? '' : ' unread'}" href="${n.link || '#'}" data-notif-id="${n.id}">
+          <div class="notif-item-text">${n.text}</div>
+          <div class="notif-item-time">${timeStr}</div>
+        </a>`;
+      })
+      .join('');
+
+    // Mark individual notification as read on click
+    notifList.querySelectorAll('.notif-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = (item as HTMLElement).dataset.notifId;
+        const notifs = getNotifications();
+        const notif = notifs.find(n => n.id === id);
+        if (notif) {
+          notif.read = true;
+          saveNotifications(notifs);
+          updateNotifBadge();
+        }
+      });
+    });
+  }
+
+  // Toggle panel
+  notifBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    notifPanel?.classList.toggle('hidden');
+    renderNotifications();
+  });
+
+  // Close panel on outside click
+  document.addEventListener('click', (e) => {
+    if (notifPanel && !notifPanel.classList.contains('hidden')) {
+      if (!notifPanel.contains(e.target as Node) && e.target !== notifBtn) {
+        notifPanel.classList.add('hidden');
+      }
+    }
+  });
+
+  // Mark all as read
+  notifMarkAll?.addEventListener('click', () => {
+    const notifs = getNotifications();
+    notifs.forEach(n => n.read = true);
+    saveNotifications(notifs);
+    updateNotifBadge();
+    renderNotifications();
+  });
+
+  // Expose global function to add notifications
+  (window as any).__addNotification = function(text: string, link: string = '') {
+    const notifs = getNotifications();
+    notifs.push({
+      id: Date.now().toString(),
+      text,
+      time: new Date().toISOString(),
+      read: false,
+      link,
+    });
+    saveNotifications(notifs);
+    updateNotifBadge();
+  };
+
+  // Initial badge update
+  updateNotifBadge();
+
+
+  // ── AUTH BUTTON: link to profile when guest name exists ──
+  const authLink = document.getElementById('authNavBtn') as HTMLAnchorElement;
+  if (authLink) {
+    const guestName = localStorage.getItem('akool-guest-name');
+    if (guestName) {
+      authLink.href = `/profile?user=${encodeURIComponent(guestName)}`;
+      const guestText = authLink.querySelector('.auth-text-guest') as HTMLElement;
+      const userText = authLink.querySelector('.auth-text-user') as HTMLElement;
+      if (guestText) guestText.classList.add('hidden');
+      if (userText) {
+        userText.textContent = guestName;
+        userText.classList.remove('hidden');
+      }
+      authLink.classList.add('logged-in');
+    }
+  }
+</script>

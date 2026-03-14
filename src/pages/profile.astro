@@ -1,0 +1,810 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import SearchModal from '../components/SearchModal.astro';
+---
+
+<BaseLayout title="الملف الشخصي — عَقول" description="الملف الشخصي للعضو في مجتمع عَقول">
+  <Navbar />
+  <SearchModal />
+
+  <section class="section" style="padding-top:calc(var(--nav-h) + 40px);">
+    <div class="container" style="max-width:800px;">
+
+      <!-- No user state -->
+      <div id="noUser" style="display:none;text-align:center;padding:4rem 1rem;">
+        <div style="font-size:4rem;margin-bottom:1rem;">👤</div>
+        <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:0.75rem;color:var(--text);">لم يتم تحديد المستخدم</h2>
+        <p style="color:var(--text-muted);margin-bottom:2rem;line-height:1.8;">يرجى تحديد اسم المستخدم في الرابط</p>
+        <a href="/forum" class="btn-primary" style="padding:12px 28px;font-size:0.95rem;">زيارة المنتدى</a>
+      </div>
+
+      <!-- Profile content -->
+      <div id="profileContent" style="display:none;">
+
+        <!-- Profile header -->
+        <div class="profile-header">
+          <div class="profile-avatar" id="profileAvatar"></div>
+          <div class="profile-info">
+            <h1 class="profile-username" id="profileUsername"></h1>
+            <div class="profile-meta">
+              <span class="profile-badge" id="profileBadge" style="display:none;"></span>
+              <span class="profile-date" id="profileDate"></span>
+            </div>
+            <div id="profileDonor" class="profile-donor" style="display:none;"></div>
+          </div>
+          <button class="btn-share" id="shareBtn" title="شارك الملف الشخصي">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            شارك الملف الشخصي
+          </button>
+        </div>
+
+        <div id="shareToast" class="share-toast" style="display:none;">تم نسخ الرابط!</div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+          <button class="profile-tab active" data-tab="posts">📝 المشاركات</button>
+          <button class="profile-tab" data-tab="comments">💬 التعليقات</button>
+          <button class="profile-tab" data-tab="submissions">📤 المساهمات</button>
+          <button class="profile-tab" data-tab="courses">🎓 المسارات</button>
+          <button class="profile-tab" data-tab="scores">🧩 نتائج الاختبارات</button>
+          <button class="profile-tab" data-tab="bookmarks" id="tabBookmarks" style="display:none;">🔖 المحفوظات</button>
+        </div>
+
+        <!-- Tab: Posts -->
+        <div class="tab-panel active" id="panel-posts">
+          <div id="postsEmpty" class="empty-state" style="display:none;">
+            <div class="empty-icon">📝</div>
+            <p>لا توجد بيانات بعد</p>
+          </div>
+          <div id="postsList" class="profile-list"></div>
+        </div>
+
+        <!-- Tab: Comments -->
+        <div class="tab-panel" id="panel-comments">
+          <div id="commentsEmpty" class="empty-state" style="display:none;">
+            <div class="empty-icon">💬</div>
+            <p>لا توجد بيانات بعد</p>
+          </div>
+          <div id="commentsList" class="profile-list"></div>
+        </div>
+
+        <!-- Tab: Submissions -->
+        <div class="tab-panel" id="panel-submissions">
+          <div id="submissionsEmpty" class="empty-state" style="display:none;">
+            <div class="empty-icon">📤</div>
+            <p>لا توجد بيانات بعد</p>
+          </div>
+          <div id="submissionsList" class="profile-list"></div>
+        </div>
+
+        <!-- Tab: Courses -->
+        <div class="tab-panel" id="panel-courses">
+          <div id="coursesEmpty" class="empty-state" style="display:none;">
+            <div class="empty-icon">🎓</div>
+            <p>لم يبدأ أي مسار تعليمي بعد</p>
+            <a href="/learn" style="color:var(--accent);font-weight:700;font-size:0.9rem;">ابدأ التعلّم ←</a>
+          </div>
+
+          <!-- Badges -->
+          <div id="coursesBadges" style="display:none;margin-bottom:2rem;text-align:center;">
+            <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;">🏅 الشارات المكتسبة</h4>
+            <div id="badgesList" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"></div>
+          </div>
+
+          <div id="coursesList"></div>
+        </div>
+
+        <!-- Tab: Quiz Scores -->
+        <div class="tab-panel" id="panel-scores">
+          <div id="scoresEmpty" class="empty-state" style="display:none;">
+            <div class="empty-icon">🧩</div>
+            <p>لم يُكمل أي اختبار بعد</p>
+          </div>
+          <div id="scoresSummary" style="display:none;margin-bottom:1.5rem;padding:16px;background:var(--accent-light);border-radius:var(--radius);text-align:center;">
+            <div style="font-size:2rem;font-weight:900;color:var(--accent);" id="totalScoreNum">0</div>
+            <div style="font-size:0.85rem;color:var(--accent);font-weight:600;">إجمالي الإجابات الصحيحة</div>
+          </div>
+          <div id="scoresList" class="profile-list"></div>
+        </div>
+
+        <!-- Tab: Bookmarks (own profile only) -->
+        <div class="tab-panel" id="panel-bookmarks">
+          <div id="bookmarksEmpty" class="empty-state" style="display:none;">
+            <div class="empty-icon">🔖</div>
+            <p>لا توجد بيانات بعد</p>
+          </div>
+          <div id="bookmarksList" class="profile-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+  <ChatWidget />
+</BaseLayout>
+
+<style>
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 2rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg, 16px);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 900;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .profile-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .profile-username {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+    line-height: 1.3;
+  }
+  .profile-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .profile-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: var(--accent-light, rgba(59,130,246,0.1));
+    color: var(--accent);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .profile-donor {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .btn-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--surface2, var(--surface));
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 10px);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    font-family: var(--font, inherit);
+    white-space: nowrap;
+  }
+  .btn-share:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .share-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 24px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: var(--radius, 10px);
+    font-size: 0.9rem;
+    font-weight: 700;
+    z-index: 9999;
+    animation: toastIn 0.3s ease;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* Tabs */
+  .profile-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+  .profile-tab {
+    padding: 10px 18px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: var(--font, inherit);
+    white-space: nowrap;
+  }
+  .profile-tab:hover {
+    color: var(--text);
+  }
+  .profile-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-panel {
+    display: none;
+  }
+  .tab-panel.active {
+    display: block;
+  }
+
+  /* Profile list items */
+  .profile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .profile-card {
+    display: block;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 10px);
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .profile-card:hover {
+    border-color: var(--accent);
+  }
+  .profile-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .profile-card-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .profile-card-text {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+  }
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+  .empty-state p {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 600px) {
+    .profile-header {
+      flex-direction: column;
+      text-align: center;
+    }
+    .profile-meta {
+      justify-content: center;
+    }
+    .btn-share {
+      width: 100%;
+      justify-content: center;
+    }
+    .profile-tab {
+      padding: 8px 12px;
+      font-size: 0.82rem;
+    }
+  }
+</style>
+
+<script>
+  // Parse username from URL
+  const params = new URLSearchParams(window.location.search);
+  const username = params.get('user')?.trim();
+
+  const noUser = document.getElementById('noUser') as HTMLElement;
+  const profileContent = document.getElementById('profileContent') as HTMLElement;
+
+  if (!username) {
+    noUser.style.display = 'block';
+  } else {
+    profileContent.style.display = 'block';
+    initProfile(username);
+  }
+
+  function escapeHtml(str: string): string {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function hashColor(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = [
+      '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316',
+      '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6',
+    ];
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  function initProfile(user: string) {
+    // Avatar
+    const avatar = document.getElementById('profileAvatar') as HTMLElement;
+    avatar.textContent = user[0].toUpperCase();
+    avatar.style.backgroundColor = hashColor(user);
+
+    // Username
+    (document.getElementById('profileUsername') as HTMLElement).textContent = user;
+
+    // Profile data from localStorage (if exists)
+    const profileKey = `akool-profile-${user}`;
+    let profileData: any = null;
+    try { profileData = JSON.parse(localStorage.getItem(profileKey) || 'null'); } catch {}
+
+    // Badge
+    const badgeEl = document.getElementById('profileBadge') as HTMLElement;
+    if (profileData?.badge) {
+      const labels: Record<string, string> = {
+        bronze: '🥉 برونزي',
+        silver: '🥈 فضي',
+        gold: '🥇 ذهبي',
+        platinum: '💎 بلاتيني',
+      };
+      badgeEl.textContent = labels[profileData.badge] || profileData.badge;
+      badgeEl.style.display = 'inline-flex';
+    }
+
+    // Donor info
+    const donorEl = document.getElementById('profileDonor') as HTMLElement;
+    if (profileData?.is_donor) {
+      donorEl.style.display = 'block';
+      if (profileData.show_donation) {
+        donorEl.textContent = '💚 متبرع لمجتمع عَقول';
+      } else {
+        donorEl.textContent = '💚 متبرع';
+      }
+    }
+
+    // Member since
+    const dateEl = document.getElementById('profileDate') as HTMLElement;
+    if (profileData?.joined) {
+      dateEl.textContent = '📅 عضو منذ ' + new Date(profileData.joined).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' });
+    } else {
+      dateEl.textContent = '📅 عضو في مجتمع عَقول';
+    }
+
+    // Check if viewing own profile (check if current user matches)
+    const isOwnProfile = checkIsOwnProfile(user);
+    if (isOwnProfile) {
+      const tabBookmarks = document.getElementById('tabBookmarks') as HTMLElement;
+      tabBookmarks.style.display = '';
+    }
+
+    // Load data
+    loadPosts(user);
+    loadComments(user);
+    loadSubmissions(user);
+    loadCourses();
+    loadQuizScores();
+    if (isOwnProfile) loadBookmarks();
+
+    // Tabs
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const panelId = 'panel-' + (tab as HTMLElement).dataset.tab;
+        document.getElementById(panelId)?.classList.add('active');
+      });
+    });
+
+    // Share button
+    document.getElementById('shareBtn')?.addEventListener('click', () => {
+      const url = window.location.origin + '/profile?user=' + encodeURIComponent(user);
+      navigator.clipboard.writeText(url).then(() => {
+        const toast = document.getElementById('shareToast') as HTMLElement;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+      }).catch(() => {
+        // Fallback
+        const input = document.createElement('input');
+        input.value = window.location.origin + '/profile?user=' + encodeURIComponent(user);
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        const toast = document.getElementById('shareToast') as HTMLElement;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+      });
+    });
+  }
+
+  function checkIsOwnProfile(user: string): boolean {
+    // Check Supabase auth token or navbar state for matching user
+    const authBtn = document.getElementById('authNavBtn');
+    if (authBtn?.title && authBtn.title.toLowerCase() === user.toLowerCase()) return true;
+    // Also check if any known local key hints at the current user
+    return false;
+  }
+
+  // ── Forum posts (threads + replies) ──
+  function loadPosts(user: string) {
+    const list = document.getElementById('postsList') as HTMLElement;
+    const empty = document.getElementById('postsEmpty') as HTMLElement;
+    const items: string[] = [];
+
+    // 1. User-created forum threads
+    try {
+      const threads = JSON.parse(localStorage.getItem('akool-forum-threads') || '[]');
+      threads.forEach((t: any) => {
+        if (t.author && t.author.toLowerCase() === user.toLowerCase()) {
+          items.push(`
+            <a href="/forum/${t.id}" class="profile-card">
+              <div class="profile-card-title">${escapeHtml(t.title)}</div>
+              <div class="profile-card-meta">
+                <span class="blog-tag">${escapeHtml(t.topic || 'عام')}</span>
+                <span>${t.time || ''}</span>
+              </div>
+              <div class="profile-card-text">${escapeHtml(t.text || '')}</div>
+            </a>
+          `);
+        }
+      });
+    } catch {}
+
+    // 2. Forum replies (scan akool-forum-replies-* keys)
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('akool-forum-replies-')) continue;
+      try {
+        const threadId = key.replace('akool-forum-replies-', '');
+        const replies = JSON.parse(localStorage.getItem(key) || '[]');
+        replies.forEach((r: any) => {
+          if (r.author && r.author.toLowerCase() === user.toLowerCase() && !r.isAi) {
+            items.push(`
+              <a href="/forum/${threadId}" class="profile-card">
+                <div class="profile-card-title">رد في المنتدى</div>
+                <div class="profile-card-meta">
+                  <span>${r.time || ''}</span>
+                </div>
+                <div class="profile-card-text">${escapeHtml(r.text || '')}</div>
+              </a>
+            `);
+          }
+        });
+      } catch {}
+    }
+
+    if (items.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      list.innerHTML = items.join('');
+    }
+  }
+
+  // ── Article comments ──
+  function loadComments(user: string) {
+    const list = document.getElementById('commentsList') as HTMLElement;
+    const empty = document.getElementById('commentsEmpty') as HTMLElement;
+    const items: string[] = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('akool-comments-')) continue;
+      try {
+        const articleId = key.replace('akool-comments-', '');
+        const comments = JSON.parse(localStorage.getItem(key) || '[]');
+        comments.forEach((c: any) => {
+          if (c.name && c.name.toLowerCase() === user.toLowerCase() && c.status === 'approved') {
+            items.push(`
+              <a href="/articles/${articleId}#comments" class="profile-card">
+                <div class="profile-card-title">تعليق على مقال</div>
+                <div class="profile-card-meta">
+                  <span>${c.date ? new Date(c.date).toLocaleDateString('ar-EG') : ''}</span>
+                </div>
+                <div class="profile-card-text">${escapeHtml(c.text || '')}</div>
+              </a>
+            `);
+          }
+        });
+      } catch {}
+    }
+
+    if (items.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      list.innerHTML = items.join('');
+    }
+  }
+
+  // ── Submissions ──
+  function loadSubmissions(user: string) {
+    const list = document.getElementById('submissionsList') as HTMLElement;
+    const empty = document.getElementById('submissionsEmpty') as HTMLElement;
+    const items: string[] = [];
+
+    try {
+      const subs = JSON.parse(localStorage.getItem('akool-submissions') || '[]');
+      subs.forEach((s: any) => {
+        if (s.name && s.name.toLowerCase() === user.toLowerCase()) {
+          const statusLabels: Record<string, string> = {
+            approved: '✅ مقبول',
+            rejected: '❌ مرفوض',
+            pending: '⏳ قيد المراجعة',
+          };
+          items.push(`
+            <div class="profile-card">
+              <div class="profile-card-title">${escapeHtml(s.title || 'مساهمة')}</div>
+              <div class="profile-card-meta">
+                <span class="blog-tag">${escapeHtml(s.type || '')}</span>
+                <span>${statusLabels[s.status] || s.status || ''}</span>
+                <span>${s.date ? new Date(s.date).toLocaleDateString('ar-EG') : ''}</span>
+              </div>
+              <div class="profile-card-text">${escapeHtml(s.description || '')}</div>
+            </div>
+          `);
+        }
+      });
+    } catch {}
+
+    if (items.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      list.innerHTML = items.join('');
+    }
+  }
+
+  // ── Bookmarks (own profile only) ──
+  function loadBookmarks() {
+    const list = document.getElementById('bookmarksList') as HTMLElement;
+    const empty = document.getElementById('bookmarksEmpty') as HTMLElement;
+    const items: string[] = [];
+
+    try {
+      const bookmarks = JSON.parse(localStorage.getItem('akool-bookmarks') || '[]');
+      bookmarks.forEach((b: any) => {
+        const title = typeof b === 'string' ? b : (b.title || b.slug || 'مقال محفوظ');
+        const slug = typeof b === 'string' ? b : (b.slug || b);
+        items.push(`
+          <a href="/articles/${slug}" class="profile-card">
+            <div class="profile-card-title">🔖 ${escapeHtml(String(title))}</div>
+          </a>
+        `);
+      });
+    } catch {}
+
+    if (items.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      list.innerHTML = items.join('');
+    }
+  }
+
+  // ── Courses & Badges ──
+  function loadCourses() {
+    const list = document.getElementById('coursesList') as HTMLElement;
+    const empty = document.getElementById('coursesEmpty') as HTMLElement;
+    const badgesSection = document.getElementById('coursesBadges') as HTMLElement;
+    const badgesList = document.getElementById('badgesList') as HTMLElement;
+
+    const pathMeta: Record<string, { title: string; emoji: string; color: string; textColor: string; totalLessons: number; badge: string; badgeIcon: string }> = {
+      'ai-basics': { title: 'أساسيات الذكاء الاصطناعي', emoji: '🧠', color: 'var(--accent-light)', textColor: 'var(--accent)', totalLessons: 5, badge: 'خبير أساسيات AI', badgeIcon: '🧠' },
+      'prompt-mastery': { title: 'إتقان البرومبت', emoji: '✍️', color: 'var(--purple-light)', textColor: 'var(--purple)', totalLessons: 5, badge: 'محترف البرومبت', badgeIcon: '✍️' },
+      'ai-productivity': { title: 'AI في العمل والإنتاجية', emoji: '💼', color: 'var(--blue-light)', textColor: 'var(--blue)', totalLessons: 4, badge: 'خبير إنتاجية AI', badgeIcon: '💼' },
+    };
+
+    const items: string[] = [];
+    const badges: string[] = [];
+    let hasAny = false;
+
+    for (const [pathId, meta] of Object.entries(pathMeta)) {
+      try {
+        const saved = localStorage.getItem(`akool-learn-${pathId}`);
+        if (!saved) continue;
+        hasAny = true;
+
+        const progress = JSON.parse(saved);
+        const completed = progress.completedLessons?.length || 0;
+        const total = meta.totalLessons;
+        const pct = Math.round((completed / total) * 100);
+        const isComplete = completed >= total;
+
+        // Calculate total score
+        let totalCorrect = 0;
+        let totalQuestions = 0;
+        if (progress.scores) {
+          for (const [, score] of Object.entries(progress.scores)) {
+            totalCorrect += Number(score) || 0;
+            totalQuestions += 2; // each lesson has 2 questions
+          }
+        }
+
+        const statusText = isComplete ? '✅ مكتمل' : `${completed}/${total} دروس`;
+        const statusColor = isComplete ? 'var(--accent)' : 'var(--orange)';
+
+        items.push(`
+          <a href="/learn/${pathId}" class="profile-card" style="display:block;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              <div style="width:48px;height:48px;border-radius:14px;background:${meta.color};color:${meta.textColor};display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">${meta.emoji}</div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:0.95rem;">${meta.title}</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);">📚 ${completed}/${total} دروس • ⭐ ${totalCorrect}/${totalQuestions} إجابة صحيحة</div>
+              </div>
+              <span style="font-size:0.78rem;font-weight:700;padding:3px 12px;border-radius:50px;background:${isComplete ? 'var(--accent-light)' : 'var(--surface2)'};color:${statusColor};">${statusText}</span>
+            </div>
+            <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${isComplete ? 'var(--accent)' : 'var(--orange)'};border-radius:4px;transition:width 0.5s;"></div>
+            </div>
+          </a>
+        `);
+
+        // Badge for completed courses
+        if (isComplete) {
+          badges.push(`
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 20px;background:var(--surface);border:2px solid ${meta.textColor};border-radius:var(--radius-lg);min-width:120px;">
+              <div style="font-size:2rem;">${meta.badgeIcon}</div>
+              <span style="font-size:0.82rem;font-weight:800;color:${meta.textColor};">${meta.badge}</span>
+              <span style="font-size:0.72rem;color:var(--text-muted);">⭐ ${totalCorrect}/${totalQuestions}</span>
+            </div>
+          `);
+        }
+      } catch {}
+    }
+
+    if (!hasAny) {
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = items.join('');
+
+    if (badges.length > 0) {
+      badgesSection.style.display = 'block';
+      badgesList.innerHTML = badges.join('');
+
+      // Save badges count to localStorage for display elsewhere
+      try {
+        localStorage.setItem('akool-badges-count', badges.length.toString());
+      } catch {}
+    }
+  }
+
+  // ── Quiz Scores ──
+  function loadQuizScores() {
+    const list = document.getElementById('scoresList') as HTMLElement;
+    const empty = document.getElementById('scoresEmpty') as HTMLElement;
+    const summary = document.getElementById('scoresSummary') as HTMLElement;
+    const totalNum = document.getElementById('totalScoreNum') as HTMLElement;
+
+    const topicNames: Record<string, string> = {
+      'what-is-ai': '🧠 ما هو الذكاء الاصطناعي؟',
+      'machine-learning': '🤖 التعلّم الآلي',
+      'ai-history': '📜 تاريخ AI',
+      'model-types': '🔤 أنواع النماذج',
+      'glossary': '📖 قاموس المصطلحات',
+      'llms': '💬 النماذج اللغوية الكبيرة',
+      'generative-ai': '✨ الذكاء التوليدي',
+      'ai-agents': '🤝 وكلاء AI',
+      'prompt-engineering': '✍️ هندسة البرومبت',
+      'vector-databases': '🔗 قواعد البيانات المتجهية',
+    };
+
+    try {
+      // Bible section scores
+      const bibleScores = JSON.parse(localStorage.getItem('akool-bible-scores') || '{}');
+
+      // Also check individual progress for section-based articles
+      const items: string[] = [];
+      let totalCorrect = 0;
+      let totalQuestions = 0;
+
+      for (const [articleId, score] of Object.entries(bibleScores)) {
+        const scoreStr = String(score);
+        const parts = scoreStr.split('/');
+        const correct = parseInt(parts[0]) || 0;
+        const total = parseInt(parts[1]) || 0;
+        const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const name = topicNames[articleId] || articleId;
+
+        totalCorrect += correct;
+        totalQuestions += total;
+
+        const barColor = pct >= 80 ? 'var(--accent)' : pct >= 50 ? 'var(--orange)' : 'var(--rose)';
+        const badge = pct >= 80 ? '🌟 ممتاز' : pct >= 50 ? '👍 جيد' : '📚 يحتاج مراجعة';
+
+        items.push(`
+          <a href="/bible/${articleId}" class="profile-card" style="display:block;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="profile-card-title" style="flex:1;">${name}</span>
+              <span style="font-size:0.78rem;font-weight:700;padding:2px 10px;border-radius:50px;background:${barColor};color:white;">${correct}/${total}</span>
+            </div>
+            <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.5s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;">
+              <span style="font-size:0.78rem;color:var(--text-muted);">${pct}%</span>
+              <span style="font-size:0.78rem;color:var(--text-muted);">${badge}</span>
+            </div>
+          </a>
+        `);
+      }
+
+      // Also check learn path progress
+      const learnKeys = Object.keys(localStorage).filter(k => k.startsWith('akool-learn-progress-'));
+      for (const key of learnKeys) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key) || '{}');
+          const pathId = key.replace('akool-learn-progress-', '');
+          if (data.completed) {
+            items.push(`
+              <div class="profile-card">
+                <div class="profile-card-title">🎓 أكمل مسار: ${pathId}</div>
+                <span style="font-size:0.78rem;color:var(--accent);font-weight:700;">✅ مكتمل</span>
+              </div>
+            `);
+          }
+        } catch {}
+      }
+
+      if (items.length === 0) {
+        empty.style.display = 'block';
+        summary.style.display = 'none';
+      } else {
+        list.innerHTML = items.join('');
+        summary.style.display = 'block';
+        totalNum.textContent = `${totalCorrect} / ${totalQuestions}`;
+      }
+    } catch {
+      empty.style.display = 'block';
+    }
+  }
+</script>
